@@ -23,9 +23,6 @@ octave-workspace
 
 # My ignores
 
-# Bash scripts
-*.sh 
-
 # Empty MATLAB script for online computations
 empty_sheet.m
 
