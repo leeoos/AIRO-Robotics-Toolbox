@@ -1,12 +1,13 @@
 %% Sopravvivenza_AIRO! Robotics 2 Library
-% Author: Massimo, Leonardo, Paolo, Francesco
+% Authors: Massimo, Leonardo, Paolo, Francesco
 % This is a library of MATLAB functions used to solve robotics problems.
-%%% USAGE: 
+%%% USAGE: %%%
 % Import "lib" and "config" directories inside your work directory and 
-% run the appropriate script for your system inside config.
+% run the appropriate script for your system inside ".config".
 % Then add the following header on top of your script:
 %%% HEADER %%%
-% addpath('../lib');
+% path = getenv("ROB2LIB_PATH")
+% addpath(path);
 % FunObj = Rob2Lib();
 %%% END %%%
 
