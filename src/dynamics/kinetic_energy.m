@@ -8,21 +8,22 @@ FunObj = Rob2Lib();
 clc 
 close all
 
-syms L1 L2 L3 q1 q2 q3 d1 d2 d3 V F D C E
+syms L1 L2 L3 q1 q2 q3 
 
 %% INPUTS FOR THE PROBLEM
 % PAY ATTENTION: update for each problem!
 
 % Direct kinematics.
 DHTABLE = [        
-    pi/2    0   L1  q1;
-    0       L2  0   q2;
-    0       L3  0   q3;
+    0    L1     0   q1;
+    pi/2 0      0   q2;
+    0    L3     0   q3;
 ];
 N = size(DHTABLE, 1); % number of joints
 
+syms d1 d2 d3 V F D C E
 % Vectro of the centers of masses
-RCoM = {[V;-F;0], [-C;0;0], [-D;0;E]};
+RCoM = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
 
 % sigma vector:
 % 0: revolout 
@@ -33,7 +34,7 @@ sigma = [
     0;
 ];
 
-% Initial conditions for velocities
+% Initial conditions for angular velocity
 initial_omega = [
     0;
     0;
@@ -42,7 +43,7 @@ initial_omega = [
 OMEGA = cell(1, N);
 OMEGA{1} = initial_omega;
 
-
+% Initial conditions for linear velocity
 initial_velocity = [
     0;
     0;
@@ -64,11 +65,11 @@ masses = (sym('m',[1 N]));
 Ixxsymb = (sym('Ixx',[1 N]));
 Iyysymb = (sym('Iyy',[1 N]));
 Izzsymb = (sym('Izz',[1 N]));
-Ixysymb = (sym('Ixy',[1 N]));
+Ixysymb = zeros(1,N); %(sym('Ixy',[1 N]));
 %Iyxsymb = (sym('Iyx',[1 N]));
 %Izxsymb = (sym('Izx',[1 N]));
-Ixzsymb = (sym('Ixz',[1 N]));
-Iyzsymb = (sym('Iyz',[1 N]));
+Ixzsymb = zeros(1,N); %(sym('Ixz',[1 N]));
+Iyzsymb = zeros(1,N); %(sym('Iyz',[1 N]));
 %Izysymb = (sym('Izy',[1 N]));
 I = cell(1,3);
 for i =(1:N)
@@ -109,7 +110,8 @@ for i = (1 : N)
                      (1/2*masses(i)*transpose(velocity_CoM)*velocity_CoM) + ... 
                      (1/2*transpose(OMEGA{i+1})*I{i}*OMEGA{i+1})...
                     );
-    KINETIC_ENERGY = simplify(KINETIC_ENERGY);
+    disp(["Step ", i])
+    KINETIC_ENERGY = simplify(KINETIC_ENERGY)
     
 end
 
