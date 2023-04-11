@@ -101,6 +101,7 @@ q_dot_SNS = round(vpa(q_bar_dot),3)
 function result = getTaskScalingFactor(a, b, n, Q_dot_min, Q_dot_max)
     S_max = [];
     S_min = [];
+    
     for i = (1: n)
         S_min = [S_min; (Q_dot_min(i) - b(i)) / a(i)];
         S_max = [S_max; (Q_dot_max(i) - b(i)) / a(i)];
@@ -118,7 +119,7 @@ function result = getTaskScalingFactor(a, b, n, Q_dot_min, Q_dot_max)
     most_critcal_joint = find(S_max == s_max);
 
     if (s_min > s_max|| s_max < 0 || s_min > 1)
-        tsf = 0
+        tsf = 0;
     else
         tsf = s_max;
     end

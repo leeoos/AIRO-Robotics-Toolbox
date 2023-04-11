@@ -1,6 +1,5 @@
 %% Sopravvivenza_AIRO! 
 % Author: Massimo, Leonardo
-
 % This script take as input two configurations of the robot (initial and
 % final configuration of joints) and interpolate them using cubic
 % polynomial interpolation. Initially the algorithm compute all
@@ -67,7 +66,7 @@ qt3_ddot = diff(qt3_dot,t)
 
 % Plot of Positions, Velocities and Accelerations of Joints
 
- t=[0:0.1:T];
+ t = [0:0.1:T];
  qt1_plot= 0*t + subs(qt1);
  qt2_plot= 0*t + subs(qt2);
  qt3_plot = 0*t + subs(qt3);

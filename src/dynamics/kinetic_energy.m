@@ -1,4 +1,4 @@
-%% Sopravvivenza_AIRO! Robotics 2 Library
+%% Sopravvivenza_AIRO! 
 % Authors: Massimo, Leonardo, Paolo, Francesco
 
 path = getenv("ROB2LIB_PATH")
@@ -8,10 +8,10 @@ FunObj = Rob2Lib();
 clc 
 close all
 
-syms L1 L2 L3 q1 q2 q3 
-
 %% INPUTS FOR THE PROBLEM
 % PAY ATTENTION: update for each problem!
+
+syms L1 L2 L3 q1 q2 q3 
 
 % Direct kinematics.
 DHTABLE = [        

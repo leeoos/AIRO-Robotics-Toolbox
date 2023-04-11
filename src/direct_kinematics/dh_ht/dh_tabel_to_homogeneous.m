@@ -109,8 +109,6 @@ T = eye(4);
 % Note: 'simplify' may need some time
 % 
 
-
-
 for i=1:N
     T = T*A{i};
     T = simplify(T);
