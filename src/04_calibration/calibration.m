@@ -9,6 +9,8 @@ close all
 clear all
 
 %% INPUTS 
+% PAY ATTENTION: update for each problem!
+
 N = 2; % number of joints
 
 % Standard symbolic variables

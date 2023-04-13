@@ -12,6 +12,8 @@ addpath(my_path);
 FunObj = Rob2Lib();
 
 %% INPUTS 
+% PAY ATTENTION: update for each problem!
+
 N = 3; % number of joints
 
 % Standard symbolic variables

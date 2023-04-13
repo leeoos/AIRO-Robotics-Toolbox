@@ -1,6 +1,6 @@
 %% Sopravvivenza_AIRO! 
 % Authors: Massimo, Leonardo, Paolo, Francesco
-% Computation of CoM vectors w.r.t. world frame
+% Computation of potential energy of a genral robot
 
 close all
 clear all
@@ -15,6 +15,7 @@ FunObj = Rob2Lib();
 
 N = 4; % number of joints 
 
+% Standard symbolic variables
 syms q [1 N]
 syms L [1 N] 
 syms d [1 N]
@@ -37,9 +38,9 @@ DHTABLE = [
 i_CoM_i = {[-L1+d1;0;0;1], [-L2+d2;0;0;1], [-L3+d3;0;0;1], [-L4+d4;0;0;1]};
 
 g = [
-        0;
-        -g0;
-        0;
+    0;
+    -g0;
+    0;
 ];
 
 %% END OF INPUTS
@@ -70,18 +71,39 @@ for i = (1:N)
 end
 U;
 
+g_q = simplify(expand(gradient(U, transpose(q))));
+
+%% EXPERIMENTAL
 % Extraction of dynamics coefficents
 DYN_COEFF = cell(1,N);
 
+% Building subs array
+subs_array = [];
 for i = (1:N)
-    disp(["step", i])
-    g_q = simplify(expand(gradient(U, q)));
+    cos_q = cos(sum(q(1:i)));
+    sin_q = sin(sum(q(1:i)));
+    subs_array = [subs_array, cos_q, sin_q];
+end
+subs_values = ones(1,size(subs_array,2));
+
+for i = (1:N)
     DYN_COEFF{i} = collect(g_q(i),[cos(q1), cos(q1+q2), cos(q1+q2+q3), cos(q1+q2+q3+q3)]);
     DYN_COEFF{i} = subs(DYN_COEFF{i}, g0, 1);
-    DYN_COEFF{i}
+    DYN_COEFF{i} = subs(DYN_COEFF{i}, subs_array, subs_values);
+    DYN_COEFF{i} = subs(DYN_COEFF{i}, q, ones(1,size(q,2)));
 end
 
+dynamic_coeff = [];
+for i = (1:N)
+    if i == N
+        a_i = DYN_COEFF{i};
+    else
+        a_i = DYN_COEFF{i} - DYN_COEFF{i+1}
+    end
+    dynamic_coeff = [dynamic_coeff; a_i];
+end
 
+dynamic_coeff
 
 
 
