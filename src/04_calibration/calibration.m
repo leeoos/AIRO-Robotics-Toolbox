@@ -6,10 +6,12 @@
 
 clc
 close all
+clear all
 
-syms da dalpha dd dtheta l1 l2 q1 q2 alpha1 alpha2 d1 d2 zero 
+syms zero
 
 %% Inputs for the calibration problem
+syms da dalpha dd dtheta l1 l2 q1 q2 alpha1 alpha2 d1 d2 
 
 % Write here the task kinematics
 fprintf("Direct Kinematics \n\n");
@@ -19,7 +21,7 @@ dir_kin = [
 ];
 disp(dir_kin);
 
-% Arrays of symbolics DH parameters mantain the order alpha, a, d, theta
+% Arrays of symbolics DH parameters. Keep the order alpha, a, d, theta
 % insert "zero" if you don't want calibrate that DH parameters
 alpha = [];
 a = [l1, l2];
@@ -27,7 +29,7 @@ d = [];
 theta = [];
 sym_dh = {alpha, a, d, theta};
 
-% Insert here nominal values for DH parameters
+% Nominal DH parameters
 nominal_parameters = [
     alpha,...
     a,...
@@ -35,6 +37,7 @@ nominal_parameters = [
     theta
 ];
 
+% Insert here nominal values for DH parameters
 % Pay attention to the order: alpha, a, d, theta
 nominal_values = [
     1,...
@@ -57,7 +60,7 @@ regressor_matrix = subs(PHI_sym, nominal_parameters, nominal_values);
 regressor_matrix = subs_experiment(regressor_matrix, experimental_variables, experimental_values, 4);
 
 %% Multiple experiments
-l = 4; % Number of measurements
+l = 4; % Number of measurements (experiments)
 
 PHI_full_val = regressor_matrix;
 
@@ -68,16 +71,16 @@ delta_r_full = ee_measured_positions - dir_kin_sub;
 PHI_full_val = round(vpa(PHI_full_val),3)
 delta_r_full = round(vpa(delta_r_full),3)
 
-% Iteration steps
+%% Calibration algorithm
+% accumulators
 delta_phi_values = {};
 phi_prime_values = {};
 phi_prime = transpose(nominal_values);
 
+% stop condition when delta phi is small enough 
 eps = 10^-6;
 delta_phi = eps + 1;
 
-%% Calibration algorithm
-% stop condition when delta phi is small enough 
 while (abs(max(delta_phi)) > eps)
     
     pinv_PHI = round(vpa(pinv(PHI_full_val)),3);

@@ -23,25 +23,25 @@ classdef Rob2Lib
         % dh_par{2}: 0_T_N
         % dh_par{3}: p_ee
         function dh_par = compute_dir_kin(DHTABLE)
-            syms al a d th
+            syms DH_ALPHA DH_A DH_D DH_THETA
             N = size(DHTABLE,1);
 
             % Build the general Denavit-Hartenberg trasformation matrix
             TDH = [ 
-                    cos(th) -sin(th)*cos(al)  sin(th)*sin(al) a*cos(th);
-                    sin(th)  cos(th)*cos(al) -cos(th)*sin(al) a*sin(th);
-                      0      sin(al)          cos(al)         d;
-                      0      0                0               1
+                    cos(DH_THETA),  -sin(DH_THETA)*cos(DH_ALPHA),   sin(DH_THETA)*sin(DH_ALPHA),    DH_A*cos(DH_THETA);
+                    sin(DH_THETA),  cos(DH_THETA)*cos(DH_ALPHA),    -cos(DH_THETA)*sin(DH_ALPHA),   DH_A*sin(DH_THETA);
+                    0,              sin(DH_ALPHA),                  cos(DH_ALPHA),                  DH_D;
+                    0,              0,                              0,                              1
             ];
 
             % Build transformation matrices for each link
             % First, we create an empty cell array
             A = cell(1,N);
             for i = 1:N
-                al = DHTABLE(i,1);
-                a = DHTABLE(i,2);
-                d = DHTABLE(i,3);
-                th = DHTABLE(i,4);
+                DH_ALPHA = DHTABLE(i,1);
+                DH_A = DHTABLE(i,2);
+                DH_D = DHTABLE(i,3);
+                DH_THETA = DHTABLE(i,4);
                 A{i} = subs(TDH);
             end
                 
