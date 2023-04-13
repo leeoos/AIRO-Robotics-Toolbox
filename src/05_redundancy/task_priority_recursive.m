@@ -3,19 +3,19 @@
 % This script compute the best joint velocity for a 
 % set task with priorities. 
 
-% path_to_lib = pwd+"/../lib/"
-% addpath(path_to_lib);
-% FunObj = Rob2Lib();
-                                               
-%% THIS IS A TEST FOR GIT
-
 close all
 clear all
 clc
-syms q1 q2 q3
 
-%% INPUTS for the problem
-% Pay attention: change this values according to the problem
+my_path = getenv("ROB2LIB_PATH");
+addpath(my_path);
+FunObj = Rob2Lib();
+
+%% INPUTS 
+N = 3; % number of joints
+
+% Standard symbolic variables
+syms q [1 N] 
 
 % Vector of augmented end effector velocities for k tasks
 % Pay attention to the order of the priorities of the tasks
@@ -50,7 +50,7 @@ J_2 = [
 N = size(J_1, 2); % Number of joints
 
 % Remember to evaluate all the simbolic Jacobians before 
-% the beginning of the loop. Also use round and vpa.%
+% the beginning of the loop. Also use round and vpa.
 %J_1 = round(vpa(subs(J_1, {q1,q2,q3}, {0, pi, 0}),3),5);
 J_2 = round(vpa(subs(J_2, {q1,q2,q3}, {pi/4, 0, pi/4}),3),5);
 
@@ -107,8 +107,6 @@ for k = (1 : NUM_OF_TASKS)
             J_NULL = null(eval(J_k*P_A{k-1}));
             P_NULL = J_NULL* inv(transpose(J_NULL) * J_NULL) * transpose(J_NULL);
             P_A{k} = P_A{k-1} - P_NULL; 
-
-            %(J_k*P_A{k-1})*(P_NULL*q_dot) % check if is really a projector
             
         else
             q_dot = q_dot + pinv((J_k*P_A{k-1}))*(r_k - J_k*q_dot)

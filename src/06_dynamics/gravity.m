@@ -10,7 +10,7 @@ my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
 FunObj = Rob2Lib();
 
-%% INPUTS FOR THE PROBLEM
+%% INPUTS 
 % PAY ATTENTION: update for each problem!
 
 N = 4; % number of joints 
@@ -37,18 +37,19 @@ DHTABLE = [
 i_CoM_i = {[-L1+d1;0;0;1], [-L2+d2;0;0;1], [-L3+d3;0;0;1], [-L4+d4;0;0;1]};
 
 g = [
-    0;
-    -g0;
-    0;
+        0;
+        -g0;
+        0;
 ];
-assume(g,{'real', 'positive'})
-%%
+
+%% END OF INPUTS
 
 % Extraction of DH parametrs
 pose = FunObj.compute_dir_kin(DHTABLE);
 A = pose{1}; % cell array of chain transformations
 
 % Extraction of CoM vectors
+CoM = cell(1,N);
 A_i = eye(4);
 
 for i = (1:N)
@@ -68,6 +69,9 @@ for i = (1:N)
     U = simplify(U + U_i);
 end
 U;
+
+% Extraction of dynamics coefficents
+DYN_COEFF = cell(1,N);
 
 for i = (1:N)
     disp(["step", i])

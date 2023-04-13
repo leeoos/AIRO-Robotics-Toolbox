@@ -16,8 +16,8 @@
 classdef Rob2Lib 
     methods (Static)
 
-        % dirKin: a FunObjfunction t compute the direct kinematic of a N joints
-        % robot given the table of DH parameters.
+        % compute_dir_kin: a function to compute the direct kinematic 
+        % of a N joints robot given the table of DH parameters.
         % OUTPUT: a cell array scructured as:
         % dh_par{1}: i-1_A_i for i = 1, ...,n 
         % dh_par{2}: 0_T_N
@@ -56,6 +56,7 @@ classdef Rob2Lib
             p = T(1:4,4);
             dh_par = {A, T, p};
         end
+        % end of di
      
     end
 end
