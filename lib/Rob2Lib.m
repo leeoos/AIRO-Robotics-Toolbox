@@ -51,50 +51,12 @@ classdef Rob2Lib
                 T = T*A{i};
                 T = simplify(T);               
             end
+
+            % return values
             p = T(1:4,4);
             dh_par = {A, T, p};
         end
-  
-        function final_I = linkInertia(N)
-            Ixxsymb = (sym('Ixx',[1 N]));
-            Iyysymb = (sym('Iyy',[1 N]));
-            Izzsymb = (sym('Izz',[1 N]));
-            Ixysymb = (sym('Ixy',[1 N]));
-            Iyxsymb = (sym('Iyx',[1 N]));
-            Izxsymb = (sym('Izx',[1 N]));
-            Ixzsymb = (sym('Ixz',[1 N]));
-            Iyzsymb = (sym('Iyz',[1 N]));
-            Izysymb = (sym('Izy',[1 N]));
-
-            I = cell(1,N);
-
-            for i = (1 : N)
-                
-                I{i} = [
-                    Ixxsymb(i), Ixysymb(i), Ixzsymb(i);
-                    Iyxsymb(i), Iyysymb(i), Iyzsymb(i);
-                    Izxsymb(i), Izysymb(i), Izzsymb(i);
-                ];
-            end
-            final_I = I;
-        end
-
-        function com = symbolic_CoM(N)
-            rcxsymb = (sym('rcx',[1 N]));
-            rcysymb = (sym('rcy',[1 N]));
-            rczsymb = (sym('rcz',[1 N]));
-            
-            RCoM = cell(1, N);
-
-            for i = (1: N)
-                RCoM{i} = [
-                    rcxsymb(i);
-                    rcysymb(i);
-                    rczsymb(i);
-                ];
-            end
-            com = RCoM;
-        end
+     
     end
 end
 

@@ -12,7 +12,7 @@ clc
 %% INPUTS FOR THE PROBLEM
 % PAY ATTENTION: update for each problem!
 
-syms L1 L2 L3 q1 q2 q3 
+syms L1 L2 L3 d1 d2 d3 q1 q2 q3 
 
 % Direct kinematics.
 DHTABLE = [        

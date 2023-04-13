@@ -1,12 +1,13 @@
 %% Sopravvivenza_AIRO! 
 % Authors: Massimo, Leonardo, Paolo, Francesco
 
-path = getenv("ROB2LIB_PATH")
-addpath(path);
-FunObj = Rob2Lib();
-
 clc 
 close all
+clear all
+
+my_path = getenv("ROB2LIB_PATH");
+addpath(my_path);
+FunObj = Rob2Lib();
 
 %% INPUTS FOR THE PROBLEM
 % PAY ATTENTION: update for each problem!
@@ -148,3 +149,22 @@ for r = (1:N)
     end
 end
 M
+
+M_foo = [sym("foo")];
+for i = (1:N)
+    KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
+end
+
+for r = (1:N)
+    for c = (1:N)
+        if ((r == c))
+            M_foo(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
+        else
+            K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
+            K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
+            M_foo(r,c) = simplify(K_reduced_qrc);
+        end
+    end
+end
+
+disp(["Are M_string and M_diff equal?", isequal(M, M_foo)])
