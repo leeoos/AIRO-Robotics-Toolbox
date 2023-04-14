@@ -89,7 +89,7 @@ KINETIC_ENERGY = 0;
 % velocity of CoM and kinetic energy of each link.
 for i = (1 : N)
     R_i = A{i}(1:3, 1:3); % Rotation matrix
-    r_i = A{i}(1:3, 4);
+    im1_r_im1_i = A{i}(1:3, 4);
     z = [0;0;1];
 
     % Angular velocity
@@ -100,7 +100,7 @@ for i = (1 : N)
 
     % Linear velocity
     velocity_new = transpose(R_i) * ...
-                   (VELOCITY{i} + (sigma(i)*q_dot(i)*z) + cross(im1_omega_i,r_i));
+                   (VELOCITY{i} + (sigma(i)*q_dot(i)*z) + cross(im1_omega_i,im1_r_im1_i));
     VELOCITY{i+1} = simplify(velocity_new);  
     
 
