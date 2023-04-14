@@ -11,7 +11,6 @@ my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
 FunObj = Rob2Lib();
 
-
 %% INPUT
 % PAY ATTENTION: update for each problem!
 
@@ -24,6 +23,7 @@ syms q_d_dot [1 N]
 syms m [1 N]
 syms L [1 N]
 syms d [1 N]
+syms g0
 
 % Conversion to colum vectros
 q = transpose(q);
@@ -39,12 +39,15 @@ syms V F D C E
 % Direct kinematics.
 DHTABLE = [        
     0    L1     0   q1;
-    pi/2 0      0   q2;
+    0    L2     0   q2;
     0    L3     0   q3;
 ];
 
+% Rotation matrix from last frame to end effector
+n_R_e = eye(N);
+
 % Vectro of the centers of masses
-CoM_R = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
+R_CoM = {[-L1+d1;0;0], [-L2+d2;0;0], [-L3+d3;0;0]};
 
 % sigma vector:
 % 0: revolout 
@@ -83,8 +86,9 @@ VELOCITY = cell(1, N);
 VELOCITY{1} = initial_velocity;
 
 % Initial conditions for linear acceleration
+% Mind the position of gravity
 initial_acceleration = [
-    0;
+    g0;
     0;
     0;
 ];
@@ -101,7 +105,7 @@ external_forces = [
     0;
 ];
 FORCES = cell(1, N+1);
-FORCES{N+1} = initial_velocity;
+FORCES{N+1} = external_forces;
 
 % Initial conditions for linear acceleration
 external_torques = [
@@ -110,33 +114,44 @@ external_torques = [
     0;
 ];
 TORQUES = cell(1, N+1);
-TORQUES{N+1} = initial_velocity;
+TORQUES{N+1} = external_torques;
+
+% Generalized forces
+GEN_FORCES = cell(1,N);
+
+% Viscous frictions (update with given values)
+V_FRICTIONS = cell(1,N);
+V_FRICTIONS(:) = {0}; %{zeros(3,1)};
 
 % Input values for q, q_dot, q_d_dot --> NE(q, q_dot, q_d_dot)
 q_in = [
     pi;
     0;
-    pi/2
-]
+    pi/2;
+];
 
 q_dot_in = [
-    3;
-    3;
-    3
-]
+    0;
+    0;
+    0;
+];
 
 q_d_dot_in = [
-    2;
-    2;
-    2
-]
+    0;
+    0;
+    0;
+];
+%% END OF INPUTS
 
-% Convert to numerical values. Comment this part for symbolic computation
-q = subs(q, q, q_in);
+% Convert symbolic values to numerical values. 
+% Comment this part for symbolic computation
+% DHTABLE = subs(DHTABLE, q, q_in);
+% q = subs(q, q, q_in);
 q_dot = subs(q_dot, q_dot, q_dot_in);
 q_d_dot = subs(q_d_dot, q_d_dot, q_dot_in);
-
-%% END OF INPUTS
+% L = subs(L, L, L_in)
+% d = subs(d, d, d_in)
+% m = subs(m, m, m_in)
 
 % Extraction of DH parametrs
 dh_param = FunObj.compute_dir_kin(DHTABLE);
@@ -166,16 +181,13 @@ for i =(1:N)
 end
 %celldisp(I) % uncomment for debug
 
-
-% Computaion of linear and angular velocity of each link,
-% and velocity of CoM. 
+% Forward step: computaion of linear and angular velocity 
+% of each link and velocity of CoM. 
 % Mind the gap: 
 % i     ---> is the PREVIOUS STEP (exept for CoM Acceleration)
 % i+1   ---> is the CURRENT STEP
 for i = (1 : N)
     R_i = A{i}(1:3, 1:3); % Rotation matrix
-    %R_i = subs(R_i, q, q_in);
-    R_i = subs(R_i);
     R_i_T = transpose(R_i);
     im1_r_im1_i = A{i}(1:3, 4);
     i_r_im1_i = R_i_T * im1_r_im1_i;
@@ -192,32 +204,56 @@ for i = (1 : N)
     OMEGA_DOT{i+1} = simplify(i_omega_dot_i);
   
     % Linear acceleration
-    ACCELERATION{i+1} = (R_i_T*ACCELERATION{i}) + cross(OMEGA_DOT{i+1},i_r_im1_i) + ...
-                         + cross(OMEGA{i+1}, cross(OMEGA{i+1}, i_r_im1_i));
+    ACCELERATION{i+1} = (R_i_T*ACCELERATION{i}) + ...
+                        + sigma(i)*(q_d_dot(i)*z + cross(2*q_dot(i)*OMEGA{i+1},z)) +...
+                        + cross(OMEGA_DOT{i+1},i_r_im1_i) + ...
+                        + cross(OMEGA{i+1}, cross(OMEGA{i+1}, i_r_im1_i));
+    ACCELERATION{i+1} = simplify(ACCELERATION{i+1});
 
     % CoM acceleration
-    CoM_ACCELERATION{i} = ACCELERATION{i+1} + cross(OMEGA_DOT{i+1}, CoM_R{i}) + ...
-                          + cross(OMEGA{i+1}, cross(OMEGA{i}, CoM_R{i}));
+    CoM_ACCELERATION{i} = ACCELERATION{i+1} + cross(OMEGA_DOT{i+1}, R_CoM{i}) + ...
+                          + cross(OMEGA{i+1}, cross(OMEGA{i}, R_CoM{i}));
+    CoM_ACCELERATION{i} = simplify(CoM_ACCELERATION{i});
 end
 
 % uncomment for debug
-celldisp(OMEGA)
-celldisp(OMEGA_DOT)
-celldisp(ACCELERATION)
-celldisp(CoM_ACCELERATION)
+% celldisp(OMEGA)
+% celldisp(OMEGA_DOT)
+% celldisp(ACCELERATION)
+% celldisp(CoM_ACCELERATION)
 
+% Backward step
+for i = (N:-1:1)
+    if (i == N)
+        R_i = n_R_e;
+    else
+        R_i = A{i}(1:3, 1:3); % Rotation matrix
+    end
+    im1_r_im1_i = A{i}(1:3, 4);
+    i_r_im1_i = R_i_T * im1_r_im1_i;
+    
+    % Linear Force
+    FORCES{i} = R_i*FORCES{i+1} + m(i)*(CoM_ACCELERATION{i});
+    FORCES{i} = simplify(FORCES{i});
 
-% Function to compute the derivative of a rotation matrix
-function R_dot = diff_rotation_matrix(R, w)
-    syms wx wy wz
-    w_sym = [wx,wy,wz];
+    % Torques
+    TORQUES{i} = R_i*TORQUES{i+1} + cross(R_i*FORCES{i+1}, R_CoM{i}) + ...
+                 - cross(FORCES{i}, (i_r_im1_i + R_CoM{i})) + ... 
+                 + I{i}*OMEGA_DOT{i} + cross(OMEGA{i}, (I{i}*OMEGA{i}));
+    TORQUES{i} = simplify(TORQUES{i});
     
-    Sw = [  
-            0, -wz, wy; 
-            wz, 0, -wx; 
-            -wy, wx,  0
-    ];
-    
-    Sw = subs(Sw, w_sym, w);
-    R_dot = Sw * R;
+    % Generalized forces
+    if (sigma(i) == 0) % revolut case
+        GEN_FORCES{i} = transpose(TORQUES{i}) * z + V_FRICTIONS{i}*q_dot(i);
+    else % (sigma(i) == 1
+        GEN_FORCES{i} = transpose(FORCES{i}) * z + V_FRICTIONS{i}*q_dot(i);
+    end
+    GEN_FORCES{i} = simplify(GEN_FORCES{i});
 end
+
+% uncomment for debug
+celldisp(FORCES)
+celldisp(TORQUES)
+celldisp(GEN_FORCES)
+
+fprintf("CVD (not SVD,neighter DLS) \n")

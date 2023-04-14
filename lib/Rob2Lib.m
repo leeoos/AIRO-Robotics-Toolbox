@@ -56,7 +56,22 @@ classdef Rob2Lib
             p = T(1:4,4);
             dh_par = {A, T, p};
         end
-        % end of di
+        % end 
+
+        % Function to compute the derivative of a rotation matrix
+        function R_dot = diff_rotation_matrix(R, w)
+            syms wx wy wz
+            w_sym = [wx,wy,wz];
+            
+            Sw = [  
+                    0, -wz, wy; 
+                    wz, 0, -wx; 
+                    -wy, wx,  0
+            ];
+            
+            Sw = subs(Sw, w_sym, w);
+            R_dot = Sw * R;
+        end
      
     end
 end

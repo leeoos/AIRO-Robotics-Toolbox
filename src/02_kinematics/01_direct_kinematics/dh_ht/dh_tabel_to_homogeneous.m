@@ -15,7 +15,7 @@ fprintf("Direct Denavit Hartenberg\n")
 fprintf("Remember to edit the scripts before using them\n\n")
 
 % Define symbolic variables
-syms alpha a d theta 
+syms alpha a d theta L1 L2 L3
 
 % Insert DH table of parameters.
 fprintf("DH table of parameters \n")
@@ -34,7 +34,7 @@ fprintf("Remember to check the numbers in the script\n")
 fprintf("Press Enter to keep going \n\n")
 pause
 
-alpha1 = pi/2;
+alpha1 = 0;
 alpha2 = 0;
 alpha3 = 0;
 alpha4 = pi/2;
@@ -43,16 +43,16 @@ alpha6 = pi/2;
 alpha7 = 0;
 alpha8 = 0;
 
-a1 = 0; 
-a2 = sym('l2');
-a3 = sym('l3');
+a1 = L1; 
+a2 = L2;
+a3 = L3; 
 a4 = 0;
 a5 = 0;
 a6 = 0;
 a7 = 0;
 a8 = 0;
 
-d1 = sym('l1');
+d1 = 0;
 d2 = 0;
 d3 = 0;
 d4 = sym('d4');

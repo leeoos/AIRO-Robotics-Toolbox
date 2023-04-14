@@ -63,21 +63,25 @@ q_dot = (sym('q_dot',[1 N]));
 masses = (sym('m',[1 N]));
 
 % Inertia Matricies (Evaluate if you have numbers!)
-Ixxsymb = (sym('Ixx',[1 N]));
-Iyysymb = (sym('Iyy',[1 N]));
-Izzsymb = (sym('Izz',[1 N]));
-Ixysymb = zeros(1,N); %(sym('Ixy',[1 N]));
-%Iyxsymb = (sym('Iyx',[1 N]));
-%Izxsymb = (sym('Izx',[1 N]));
-Ixzsymb = zeros(1,N); %(sym('Ixz',[1 N]));
-Iyzsymb = zeros(1,N); %(sym('Iyz',[1 N]));
-%Izysymb = (sym('Izy',[1 N]));
+% X
+syms Ixx [1 N]
+syms Ixy [1 N]
+syms Ixz [1 N]
+% Y
+syms Iyx [1 N]
+syms Iyy [1 N]
+syms Iyz [1 N]
+% Z
+syms Izz [1 N]
+syms Izx [1 N]
+syms Izy [1 N]
+
 I = cell(1,3);
 for i =(1:N)
     I{i} = [
-        Ixxsymb(i), Ixysymb(i), Ixzsymb(i);
-        Ixysymb(i), Iyysymb(i), Iyzsymb(i);
-        Ixzsymb(i), Iyzsymb(i), Izzsymb(i);
+        Ixx(i), Ixy(i), Ixz(i);
+        Ixy(i), Iyy(i), Iyz(i);
+        Ixz(i), Iyz(i), Izz(i);
     ];
 end
 
@@ -135,7 +139,6 @@ for r = (1:N)
             KIN_q_dot_squared = subs(KIN_alias, q_dot, zeros(1,N));
             KIN_qr_dot_squared = subs(KIN_q_dot_squared, reduced_alias, zeros(1,N-1));
             M(r,c) = simplify(2*subs(KIN_qr_dot_squared, aliases(r), 1));
-
         else
             reduced_q_dot = q_dot;
             reduced_q_dot(reduced_q_dot == q_dot(c)) = [];
