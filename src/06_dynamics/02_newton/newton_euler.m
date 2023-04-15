@@ -11,6 +11,9 @@ my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
 FunObj = Rob2Lib();
 
+% Toogle output display
+enable_output = true
+
 %% INPUT
 % PAY ATTENTION: update for each problem!
 
@@ -93,7 +96,7 @@ initial_acceleration = [
     0;
 ];
 ACCELERATION = cell(1, N);
-ACCELERATION{1} = initial_velocity;
+ACCELERATION{1} = initial_acceleration;
 
 % Center of mass acceleration
 CoM_ACCELERATION = cell(1,N);
@@ -141,17 +144,6 @@ q_d_dot_in = [
     0;
     0;
 ];
-%% END OF INPUTS
-
-% Convert symbolic values to numerical values. 
-% Comment this part for symbolic computation
-% DHTABLE = subs(DHTABLE, q, q_in);
-% q = subs(q, q, q_in);
-q_dot = subs(q_dot, q_dot, q_dot_in);
-q_d_dot = subs(q_d_dot, q_d_dot, q_dot_in);
-% L = subs(L, L, L_in)
-% d = subs(d, d, d_in)
-% m = subs(m, m, m_in)
 
 % Extraction of DH parametrs
 dh_param = FunObj.compute_dir_kin(DHTABLE);
@@ -180,6 +172,19 @@ for i =(1:N)
     ];
 end
 %celldisp(I) % uncomment for debug
+
+%% END OF INPUTS
+
+
+% Convert symbolic values to numerical values. 
+% Comment this part for symbolic computation
+% DHTABLE = subs(DHTABLE, q, q_in);
+% q = subs(q, q, q_in);
+q_dot = subs(q_dot, q_dot, q_dot_in);
+q_d_dot = subs(q_d_dot, q_d_dot, q_dot_in);
+% L = subs(L, L, L_in)
+% d = subs(d, d, d_in)
+% m = subs(m, m, m_in)
 
 % Forward step: computaion of linear and angular velocity 
 % of each link and velocity of CoM. 
@@ -221,6 +226,14 @@ end
 % celldisp(OMEGA_DOT)
 % celldisp(ACCELERATION)
 % celldisp(CoM_ACCELERATION)
+
+% Output display
+if enable_output
+    for i = (i:N)
+        fprintf("OMEGA "+ i-1)
+    end
+end 
+
 
 % Backward step
 for i = (N:-1:1)

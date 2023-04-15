@@ -1,5 +1,7 @@
 %% Sopravvivenza_AIRO! 
 % Authors: Massimo, Leonardo, Paolo, Francesco
+% Implementation of moving frames algorithm to compute
+% the symbolic dynamic model of a general robot.
 
 clc 
 close all
@@ -52,7 +54,6 @@ initial_velocity = [
 ];
 VELOCITY = cell(1, N);
 VELOCITY{1} = initial_velocity;
-%% END OF INPUTS
 
 pose = FunObj.compute_dir_kin(DHTABLE);
 A = pose{1}; % cell array of chain transformations
@@ -85,12 +86,16 @@ for i =(1:N)
     ];
 end
 
+%% END OF INPUTS
+
+% Inizialization of Kinetic Energy
 % KINETIC_ENERGY = masses(1) * ((transpose(VELOCITY{1})*VELOCITY{1}) + ... 
 %                  (transpose(OMEGA{1})*I{1}*OMEGA{1}));
 KINETIC_ENERGY = 0;
 
 % Computaion of linear and angular velocity of each link,
-% velocity of CoM and kinetic energy of each link.
+% velocity of CoM and kinetic energy of each link, with 
+% moving frames algorithm
 for i = (1 : N)
     R_i = A{i}(1:3, 1:3); % Rotation matrix
     im1_r_im1_i = A{i}(1:3, 4);
