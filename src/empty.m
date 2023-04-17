@@ -37,6 +37,9 @@ g_q_corr = [
                                   -d4*g0*m4*cos(q3 + q4) ]
 
 
+
+
+
 c_q_q_dot_corr = [
  
 - q_dot4*(d4*m4*q_dot3*cos(q3 + q4) + d4*m4*q_dot4*cos(q3 + q4)) - q_dot3*(q_dot3*(m4*(d4*cos(q3 + q4) + L3*cos(q3)) + d3*m3*cos(q3)) + d4*m4*q_dot4*cos(q3 + q4));

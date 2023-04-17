@@ -25,7 +25,9 @@ octave-workspace
 
 # Empty MATLAB script for online computations
 empty_sheet.m
+empty.m
 src/empty_sheet.m
+src/empty.m
 
 # Some experiments
 experiments/
