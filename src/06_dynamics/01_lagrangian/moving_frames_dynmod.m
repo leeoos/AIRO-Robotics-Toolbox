@@ -33,7 +33,7 @@ N = size(DHTABLE, 1); % number of joints
 
 syms d1 d2 d3 V F D C E
 % Vectro of the centers of m
-RCoM = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
+R_CoM = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
 
 % sigma vector:
 % 0: revolout 
@@ -73,12 +73,15 @@ A_i = eye(4);
 for i = (1:N)
     A_i = A_i*A{i};
     A_i(1:3,:)
-    W_CoM{i} = A_i * [RCoM{i};1];
+    W_CoM{i} = A_i * [R_CoM{i};1];
 end
 
-% Initialization of symbolics vectors
+% Initialization of symbolics vectors for q, q_dot and q_d_dot
 syms q [1 N]
 syms q_dot [1 N]
+q = transpose(q);
+q_dot = transpose(q_dot);
+
 syms m [1 N]
 % Inertia Matricies (Evaluate if you have numbers!)
 % X
@@ -103,8 +106,7 @@ for i =(1:N)
     ];
 end
 
-%% END OF INPUTS
-
+%% KINETIC ENERGY 
 % Inizialization of Kinetic Energy
 % KINETIC_ENERGY = m(1) * ((transpose(VELOCITY{1})*VELOCITY{1}) + ... 
 %                  (transpose(OMEGA{1})*I{1}*OMEGA{1}));
@@ -131,7 +133,7 @@ for i = (1 : N)
     
 
     % Velocity of centers of m
-    velocity_CoM = simplify(VELOCITY{i+1} + cross(OMEGA{i+1}, RCoM{i}));
+    velocity_CoM = simplify(VELOCITY{i+1} + cross(OMEGA{i+1}, R_CoM{i}));
 
     KINETIC_ENERGY = KINETIC_ENERGY + (...
                      (1/2*m(i)*transpose(velocity_CoM)*velocity_CoM) + ... 
@@ -141,8 +143,29 @@ for i = (1 : N)
     KINETIC_ENERGY = simplify(KINETIC_ENERGY)
     
 end
+KINETIC_ENERGY = simplify(expand(simplify(KINETIC_ENERGY)))
 
-KINETIC_ENERGY = simplify(expand(KINETIC_ENERGY))
+%% M(q) INERTIA MATRIX
+% Collection of q_dot terms
+for i = (1:N)
+    KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
+end
+
+syms foo % tmp symbol
+M_q = foo;
+for r = (1:N)
+    for c = (1:N)
+        if ((r == c))
+            M_q(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
+        else
+            K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
+            K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
+            M_q(r,c) = simplify(K_reduced_qrc);
+        end
+    end
+end
+disp("M(q) Inertia Matrix")
+M_q
 
 %% EXPERIMENTAL
 aliases = sym("alias",[1 N]);
@@ -159,11 +182,11 @@ for r = (1:N)
     for c = (1:N)
         if (r == c)
             reduced_alias = aliases(aliases~=aliases(r));
-            KIN_q_dot_squared = subs(KIN_alias, q_dot, zeros(1,N));
+            KIN_q_dot_squared = subs(KIN_alias, transpose(q_dot), zeros(1,N));
             KIN_qr_dot_squared = subs(KIN_q_dot_squared, reduced_alias, zeros(1,N-1));
             M(r,c) = simplify(2*subs(KIN_qr_dot_squared, aliases(r), 1));
         else
-            reduced_q_dot = q_dot;
+            reduced_q_dot = transpose(q_dot);
             reduced_q_dot(reduced_q_dot == q_dot(c)) = [];
             reduced_q_dot(reduced_q_dot == q_dot(r)) = [];
             KIN_q_dot = subs(KIN_alias, aliases, zeros(1,N));
@@ -174,39 +197,22 @@ for r = (1:N)
         end
     end
 end
-%% EXPERIMENTAL
-
-syms foo % tmp symbol
-M_q = [foo];
-for i = (1:N)
-    KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
-end
-
-for r = (1:N)
-    for c = (1:N)
-        if ((r == c))
-            M_q(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
-        else
-            K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
-            K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
-            M_q(r,c) = simplify(K_reduced_qrc);
-        end
-    end
-end
-M_q
 disp(["Are M_experimental and M_q equal?", isequal(M, M_q)])
+%% END OF EXPERIMENTAL
+
+%% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
 
 % Computation of coriolis and centrifugal term
-COR_CENT = []; 
+c_q_q_dot = []; 
 
 for i = (1:N)
     dMi_dq = jacobian(M_q(:,i), q);
-    dM_dqi = diff(M_q, q(i))
+    dM_dqi = diff(M_q, q(i));
     Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
-    ci = simplify(q_dot*Ci*transpose(q_dot));
-    COR_CENT = [c;ci];
+    ci = simplify(transpose(q_dot)*Ci*q_dot);
+    c_q_q_dot = [c_q_q_dot;ci];
 end
-COR_CENT
+c_q_q_dot = simplify(expand(simplify(c_q_q_dot)))
 
 % Computation Potential energy 
 U = 0;
@@ -217,7 +223,6 @@ end
 U;
 
 % Computation of gravity term g(q)
-g_q = simplify(expand(gradient(U, transpose(q))));
-
-
+disp("Gravity term")
+g_q = simplify(expand(gradient(U, q)))
 

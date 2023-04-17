@@ -35,7 +35,7 @@ DHTABLE = [
 ];
 
 % Vectors of CoM relative to Reference Frame i
-i_CoM_i = {[-L1+d1;0;0;1], [-L2+d2;0;0;1], [-L3+d3;0;0;1], [-L4+d4;0;0;1]};
+R_CoM = {[-L1+d1;0;0;1], [-L2+d2;0;0;1], [-L3+d3;0;0;1], [-L4+d4;0;0;1]};
 
 g = [
     0;
@@ -55,7 +55,7 @@ A_i = eye(4);
 
 for i = (1:N)
     A_i = A_i*A{i};
-    CoM{i} = A_i * i_CoM_i{i};
+    CoM{i} = A_i * R_CoM{i};
 end
 % Uncomment this part for debug
 % for i = (1:N)

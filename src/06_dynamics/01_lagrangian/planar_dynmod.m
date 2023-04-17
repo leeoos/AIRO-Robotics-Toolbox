@@ -17,10 +17,15 @@ rob2fun = rob2lib();
 
 N = 4; % number of joints
 
-% Standard symbolic variables
+% Standard symbolic variables for joints
 syms q [1 N]
 syms q_dot [1 N]
 syms q_d_dot [1 N]
+q = transpose(q);
+q_dot = transpose(q_dot);
+q_d_dot = transpose(q_d_dot);
+
+% Symbolic variables for dynamic coefficients
 syms m [1 N]
 syms L [1 N]
 syms d [1 N]
@@ -36,7 +41,7 @@ g = [
 
 % Inertia Matricies (Evaluate if you have numbers!)
 % Set this value to false if you want to use a full inertia matrix
-diagonal_inertia = true
+diagonal_inertia = true;
 
 % X
 syms Ixx [1 N]
@@ -114,88 +119,90 @@ celldisp(OMEGA)
 
 %% END OF INPUTS
 
-% Implementation of Koening theorem for each link
+%% KINETIC ENERGY
+% Implementation of Koening theorem for computing the 
+% kinetic energy of each link
 KINETIC_ENERGY = cell(1, N);
 for i = (1:N) 
      KINETIC_ENERGY{i} = (1/2*m(i)*transpose(CoM_VELOCITY{i})*CoM_VELOCITY{i} + ...
          + (1/2*transpose(OMEGA{i})*I{i}*OMEGA{i}));
-     KINETIC_ENERGY{i} = collect(simplify(expand(KINETIC_ENERGY{i})),q_dot.^2); %[q_dot1^2, q_dot2^2, q_dot3^2, q_dot4^2]);
+     KINETIC_ENERGY{i} = collect(simplify(expand(simplify(KINETIC_ENERGY{i}))),q_dot.^2);
      KINETIC_ENERGY{i} = collect(KINETIC_ENERGY{i},m);
 end
-%celldisp(KINETIC_ENERGY) % uncomment this for debug
+celldisp(KINETIC_ENERGY) % uncomment this for debug
 
 KINETIC_ENERGY = sum([KINETIC_ENERGY{:}])
 
+%% M(q) INERTIA MATRIX
 % Extraction M(q) elements
-M_q = rob2fun.get_inertia_matrix(KINETIC_ENERGY, N);
+M_q = rob2fun.compute_inertia_matrix(KINETIC_ENERGY, N);
+disp("M(q) Inertia Matrix")
 M_q
 
-% Computation of coriolis and centrifugal term
-c_q_q_dot = []; 
+%% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
 
-for i = (1:N)
-    dMi_dq = jacobian(M_q(:,i), q);
-    dM_dqi = diff(M_q, q(i));
-    Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
-    ci = simplify(q_dot*Ci*transpose(q_dot));
-    c_q_q_dot = [c_q_q_dot;ci];
-end
+% Computation of coriolis, centrifugal and gravity terms
+N_terms = rob2fun.compute_n_terms(M_q, W_CoM, g, N);
+
+c_q_q_dot = N_terms{1};
+disp("Coriolis and centrifugal term")
 c_q_q_dot
 
-% Computation Potential energy 
-U = 0;
-for i = (1:N)
-    U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
-    U = simplify(U + U_i);
-end
-U;
+g_q = N_terms{2};
+disp("Gravity term")
+g_q
 
-% Computation of gravity term g(q)
-g_q = simplify(expand(gradient(U, transpose(q))))
+%% DYNAMIC MODEL u
+model = M_q*q_d_dot + c_q_q_dot + g_q;
+disp("Dynamic Model with a")
+model
 
+%% COMPUTATION OF DYNAMICS COEFFICIENTS
+% PAY ATTENTION !!! 
+disp("This part is dedicated to the computation of the dynamic coefficient")
+disp("This require some manual computation, press enter to go on")
+pause
 
-%% EXPERIMENTAL
-% Extraction of dynamics coefficents
-
-% Building subs array
-% subs_array = [];
-% for i = (1:N)
-%     cos_q = [cos(q1), cos(q2), cos(q1+q2), cos(q2+q3)]; %cos(sum(q(1:i)));
-%     sin_q = [sin(1), sin(2)]; %sin(sum(q(1:i)));
-%     subs_array = [subs_array, cos_q, sin_q];
-% end
-% subs_values = ones(1,size(subs_array,2));
-
-
-DYN_COEFF = M_q
-DYN_COEFF = subs(DYN_COEFF, g0, 1);
-DYN_COEFF = subs(DYN_COEFF, q, ones(1,size(q,2)));
-DYN_COEFF = subs(DYN_COEFF, q_dot, ones(1,size(q_dot,2)));
-DYN_COEFF = subs(DYN_COEFF, q_d_dot, ones(1,size(q_d_dot,2)));
-DYN_COEFF = subs(DYN_COEFF, L, ones(1,size(L,2)));
-%DYN_COEFF{i} = subs(DYN_COEFF{i}, subs_array, subs_values);
-
-syms foo
-dynamic_coeff = [];
-
+% "Easy" way to extract dynamic coefficents
+triang_M = [];
 for r = (1:N)
     for c = (r:N)
-        if not(DYN_COEFF(r,c) == 0)
-            DYN_COEFF(r,c)
-            dynamic_coeff = [dynamic_coeff; DYN_COEFF(r,c)];
-        end
+        triang_M = [triang_M; M_q(r,c)];
     end
 end
+disp("Extract the dynamic coefficients form here")
+triang_M 
 
-% dynamic_coeff = [];
-% for i = (1:N)
-%     if i == N
-%         a_i = DYN_COEFF{i};
-%     else
-%         a_i = DYN_COEFF{i} - DYN_COEFF{i+1};
-%     end
-%     dynamic_coeff = [dynamic_coeff; a_i];
-% end
+% PAY ATTENTION !!! Insert here the values for a1, a2, ..., an
+da1 = m1 + m2 + m3 + m4;
+da2 = m2 + m3 + m4;
+da3 = Izz3 + m3*d3^2 + Izz4 + m4*d4^2 + m4*L3^2;
+da4 = Izz4 +m4*d4^2;
+da5 = m4*d4;
+da6 = m3*d3 + m4*L3;
 
-dynamic_coeff
+% PAY ATTENTION !!! edit also this vector
+da = [da1, da2, da3, da4, da5, da6];
+transpose(da)
+
+% Rewriting the dynamic model with a1,a2, ..., an
+NUM_DYN = size(da,2);
+syms a [1 NUM_DYN]
+disp("Dynamic Model with a")
+model = simplify(subs(model,da,a));
+for i = (1: N)
+    model(i) = collect(simplify(model(i)), a);
+end
+model
+
+
+Y = [sym("foo")];
+for r = (1:N)
+    for c = (1 : NUM_DYN)
+        Y(r,c) = diff(model(r), a(c));
+    end
+end
+Y
+
+
 

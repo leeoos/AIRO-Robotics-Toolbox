@@ -14,15 +14,18 @@
 % Definition of a class whose ojbects (FunObj) will be used to statically 
 % call the function of this library inside other scripts
 classdef rob2lib 
+
     methods (Static)
 
-        % A function to compute the direct kinematic 
-        % of a N joints robot given the table of DH parameters.
-        % OUTPUT: a cell array scructured as:
-        % dh_par{1}: i-1_A_i for i = 1, ...,n 
-        % dh_par{2}: 0_T_N
-        % dh_par{3}: p_ee
         function dh_par = compute_dir_kin(DHTABLE)
+            % A function to compute the direct kinematic 
+            % of a N joints robot given the table of DH parameters.
+            % OUTPUT: a cell array scructured as:
+            % dh_par{1}: i-1_A_i for i = 1, ...,n 
+            % dh_par{2}: 0_T_N
+            % dh_par{3}: p_ee
+
+            % DH symbols
             syms DH_ALPHA DH_A DH_D DH_THETA
             N = size(DHTABLE,1);
 
@@ -52,32 +55,19 @@ classdef rob2lib
                 T = simplify(T);               
             end
 
-            % return values
+            % Return values
             p = T(1:4,4);
             dh_par = {A, T, p};
         end
         % end of function
 
-        % A function to compute the derivative of a rotation matrix
-        function R_dot = diff_rotation_matrix(R, w)
-            syms wx wy wz
-            w_sym = [wx,wy,wz];
-            
-            Sw = [  
-                    0, -wz, wy; 
-                    wz, 0, -wx; 
-                    -wy, wx,  0
-            ];
-            
-            Sw = subs(Sw, w_sym, w);
-            R_dot = Sw * R;
-        end
-        % end of function
+        function M_q = compute_inertia_matrix(KINETIC_ENERGY, N)
+            % A function to extract the elements of the inertia matrix M(q) 
+            % of a robot's dynamic model
 
-        % A function to extract the elements of the inertia matrix M(q) 
-        function M_q = get_inertia_matrix(KINETIC_ENERGY, N)
-            syms q [1 N]
+            % Useful symbols for joint velocities
             syms q_dot [1 N]
+            q_dot = transpose(q_dot);
             M_foo = [sym("foo")];
             
             for i = (1:N)
@@ -95,10 +85,53 @@ classdef rob2lib
                     end
                 end
             end
+
+            % Return value
             M_q = M_foo;
         end
         % end of funtion
-     
+
+
+        function N_terms = compute_n_terms(M_q, W_CoM, g, N)
+            % A funtion to compute the coriolis, centrifugal c(q, q_dot) and 
+            % gravity terms g(q) of a robot's dynamic model
+
+            % Useful symbols for joint variables and velocities
+            syms q [1 N]
+            syms q_dot [1 N]
+            q = transpose(q);
+            q_dot = transpose(q_dot);
+
+            % masses
+            syms m [1 N]
+             
+            % Computation of coriolis, centrifugal and gravity terms
+            c_q_q_dot = []; 
+            for i = (1:N)
+                dMi_dq = jacobian(M_q(:,i), q);
+                dM_dqi = diff(M_q, q(i));
+                Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
+                ci = simplify(transpose(q_dot)*Ci*q_dot);
+                c_q_q_dot = [c_q_q_dot;ci];
+            end
+            c_q_q_dot = simplify(expand(simplify(c_q_q_dot)));
+            
+            % Computation Potential energy 
+            U = 0;
+            for i = (1:N)
+                U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
+                U = simplify(U + U_i);
+            end
+            U;
+            
+            % Computation of gravity term g(q)
+            g_q = simplify(expand(simplify(gradient(U, q))));
+
+            % Return values
+            N_terms = {c_q_q_dot, g_q};
+        end
+        % end of function
+             
     end
 end
 

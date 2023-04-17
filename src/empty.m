@@ -28,3 +28,21 @@ function R_dot = diff_rotation_matrix(R, w)
     Sw = subs(Sw, w_sym, w);
     R_dot = Sw * R;
 end
+
+g_q_corr = [
+ 
+                                                       0;
+                                      -g0*(m2 + m3 + m4);
+-g0*(d3*m3*cos(q3) + d4*m4*cos(q3 + q4) + L3*m4*cos(q3));
+                                  -d4*g0*m4*cos(q3 + q4) ]
+
+
+c_q_q_dot_corr = [
+ 
+- q_dot4*(d4*m4*q_dot3*cos(q3 + q4) + d4*m4*q_dot4*cos(q3 + q4)) - q_dot3*(q_dot3*(m4*(d4*cos(q3 + q4) + L3*cos(q3)) + d3*m3*cos(q3)) + d4*m4*q_dot4*cos(q3 + q4));
+- q_dot4*(d4*m4*q_dot3*sin(q3 + q4) + d4*m4*q_dot4*sin(q3 + q4)) - q_dot3*(q_dot3*(m4*(d4*sin(q3 + q4) + L3*sin(q3)) + d3*m3*sin(q3)) + d4*m4*q_dot4*sin(q3 + q4));
+                                                                                                                      -L3*d4*m4*q_dot4*sin(q4)*(2*q_dot3 + q_dot4);
+                                                                                                                                         L3*d4*m4*q_dot3^2*sin(q4)]
+
+
+
