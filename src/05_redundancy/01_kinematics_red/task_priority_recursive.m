@@ -61,6 +61,7 @@ J_A = {J_1, J_2};
 
 %% END OF INPUTS
 
+%% PRECOMPUTATION
 % Initialization of joint velocities
 q_dot = zeros(N, 1); 
 
@@ -70,12 +71,15 @@ P_A = cell(1,N);
 
 eps = 10^-50; % inferior limit for zero equality
 
+% Computation of maximum possible rank to check 
+% for algorithmic singularities
 full_rank_J_A = 0;
 for i = (1:size(J_A,2))
     full_rank_J_A = full_rank_J_A + size(J_A{i},1);
 end
 full_rank_J_A
 
+%% TASK PRIORITY ALGORITHM
 % 'recursive' step to update q_dot and P_A up to task k
 % see http://www.diag.uniroma1.it/deluca/rob2_en/02_KinematicRedundancy_2.pdf
 % slides number: from 2 to 5
@@ -118,7 +122,9 @@ for k = (1 : NUM_OF_TASKS)
     disp("----")
 end
 
-q_dot_final = round(simplify(q_dot),6)
+q_dot_final = round(simplify(q_dot),6);
+disp("Final joint velocity")
+q_dot_final
 
 function dls_res = compute_q_dls(mu, J, q_dot, r_dot)
     J_DLS = transpose(J) * inv(J*transpose(J) + mu*eye(size(J,1)));

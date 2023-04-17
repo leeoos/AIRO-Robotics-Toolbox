@@ -11,9 +11,6 @@ my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
 rob2fun = rob2lib();
 
-% Toogle output display
-enable_output = true
-
 %% INPUT
 % PAY ATTENTION: update for each problem!
 

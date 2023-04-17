@@ -24,7 +24,9 @@ syms l1 l2 alpha1 alpha2 d1 d2
 dir_kin = [ 
     l1*cos(q1) + l2*cos(q1+q2); 
     l1*sin(q1) + l2*sin(q1+q2);
-]
+];
+disp("Direct kinematic")
+dir_kin
 
 % Arrays of symbolics DH parameters.
 % Mind the order {alpha, a, d, theta}. Leave empty  the vectors 
@@ -57,27 +59,33 @@ experimental_values = {[0,0], [pi/2,0], [pi/4,-pi/4], [0,pi/4]};
 % Insert here experimental variables data
 ee_measured_positions = [2; 0; 0; 2; 1.6925; 0.7425; 1.7218; 0.6718];
 
+% Insert number of multiple experiments
+l = 4; 
+
 %% END OF INPUTS
 
+%% REGRESSOR MATRIX
 % Computation of symbolic regression matrix
-PHI_sym = make_sym_regressor_matrix(dir_kin, sym_dh)
+PHI_sym = make_sym_regressor_matrix(dir_kin, sym_dh);
 regressor_matrix = subs(PHI_sym, nominal_parameters, nominal_values);
 regressor_matrix = subs_experiment(regressor_matrix, experimental_variables, experimental_values, 4);
 
-% Multiple experiments
-l = 4; % Number of measurements (experiments)
-
 % Full regressor matrix PHI with experimental values 
 PHI_full_val = regressor_matrix;
-PHI_full_val = round(vpa(PHI_full_val),3)
+PHI_full_val = round(vpa(PHI_full_val),3);
+disp("Regressor matrix")
+PHI_full_val
 
+%% DELTA R
 % Full vector of end effector errors between nominal and measured positions
 dir_kin_sub = subs(dir_kin,nominal_parameters, nominal_values);
 dir_kin_sub = subs_experiment(dir_kin_sub, experimental_variables, experimental_values, l);
 delta_r_full = ee_measured_positions - dir_kin_sub;
-delta_r_full = round(vpa(delta_r_full),3)
+delta_r_full = round(vpa(delta_r_full),3);
+disp("Delta r")
+delta_r_full
 
-%% Calibration algorithm
+%% CALIBRATION ALGORITHM
 % Accumulators for updates values of phi
 delta_phi_values = cell(1,1);
 phi_prime_values = cell(1,1);
@@ -113,10 +121,12 @@ while (abs(max(delta_phi)) > eps)
     array_end = array_end + 1;
     
 end
+disp("Delta phi values")
 celldisp(delta_phi_values);
+disp("phi prime values")
 celldisp(phi_prime_values);
 
-%% Functions
+%% FUNCTIONS
 % A function to build a symbolic regressor matrix from the direct kinematics
 % and a  set of dh symbols
 function output_matrix = make_sym_regressor_matrix(input_matrix, symbols)

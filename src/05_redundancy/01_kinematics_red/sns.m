@@ -6,7 +6,10 @@ clc
 close all
 syms q1 q2 q3 q4 
 
-%% Inputs to the problem
+%% INPUTS
+
+N = 3; % number of joints
+
 joints = [q1; q2; q3];
 
 dir_kin = [
@@ -38,7 +41,6 @@ ee_psition = [];
 ee_velocity = [-3; 0];
 
 %% Precomputation
-
 % Jacobian
 J = jacobian(dir_kin, joints)
 J = subs(J, joints, current_config);
@@ -58,7 +60,7 @@ limit_exided = true;
 while(limit_exided)
     limit_exided = false;
     q_bar_dot = q_N_dot + pinv(J*W)*(ee_velocity - J*q_N_dot);
-    q_bar_dot = myLibrary.rvs(q_bar_dot);
+    %q_bar_dot = myLibrary.rvs(q_bar_dot);
 
     for i = (1 : n)
         if (q_bar_dot(i) < Q_min(i) || q_bar_dot(i) > Q_max(i))
