@@ -9,9 +9,9 @@ clc
 
 my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
-FunObj = Rob2Lib();
+rob2fun = rob2lib();
 
-%% INPUT
+%% INPUTS
 % PAY ATTENTION: update for each problem!
 
 N = 3; % number of joints

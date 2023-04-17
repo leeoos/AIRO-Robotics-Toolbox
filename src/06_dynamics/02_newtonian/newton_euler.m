@@ -9,7 +9,7 @@ clear all
 
 my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
-FunObj = Rob2Lib();
+rob2fun = rob2lib();
 
 % Toogle output display
 enable_output = true
@@ -146,7 +146,7 @@ q_d_dot_in = [
 ];
 
 % Extraction of DH parametrs
-dh_param = FunObj.compute_dir_kin(DHTABLE);
+dh_param = rob2fun.compute_dir_kin(DHTABLE);
 A = dh_param{1}; % cell array of chain transformations
 
 % Inertia Matricies (Evaluate if you have numbers!)
@@ -228,11 +228,11 @@ end
 % celldisp(CoM_ACCELERATION)
 
 % Output display
-if enable_output
-    for i = (i:N)
-        fprintf("OMEGA "+ i-1)
-    end
-end 
+% if enable_output
+%     for i = (i:N)
+%         fprintf("OMEGA "+ i-1)
+%     end
+% end 
 
 
 % Backward step

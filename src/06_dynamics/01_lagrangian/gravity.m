@@ -8,9 +8,9 @@ clc
 
 my_path = getenv("ROB2LIB_PATH");
 addpath(my_path);
-FunObj = Rob2Lib();
+rob2fun = rob2lib();
 
-%% INPUT
+%% INPUTS
 % PAY ATTENTION: update for each problem!
 
 N = 4; % number of joints 
@@ -46,24 +46,23 @@ g = [
 %% END OF INPUTS
 
 % Extraction of DH parametrs
-pose = FunObj.compute_dir_kin(DHTABLE);
+pose = rob2fun.compute_dir_kin(DHTABLE);
 A = pose{1}; % cell array of chain transformations
 
 % Extraction of CoM vectors
-CoM = cell(1,N);
+W_CoM = cell(1,N);
 A_i = eye(4);
 
 for i = (1:N)
     A_i = A_i*A{i};
     CoM{i} = A_i * i_CoM_i{i};
 end
-
-% % Uncomment this part for debug
+% Uncomment this part for debug
 % for i = (1:N)
 %     CoM{i} = simplify(CoM{i})
 % end 
 
-% Potential Energy claculation
+% Computation potential energy 
 U = 0;
 for i = (1:N)
     U_i = simplify(- m(i)*(transpose(g))*CoM{i}(1:3));
@@ -71,6 +70,7 @@ for i = (1:N)
 end
 U;
 
+% Computation of g(q)
 g_q = simplify(expand(gradient(U, transpose(q))));
 
 %% EXPERIMENTAL

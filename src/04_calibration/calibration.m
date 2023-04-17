@@ -8,7 +8,7 @@ clc
 close all
 clear all
 
-%% INPUT
+%% INPUTS
 % PAY ATTENTION: update for each problem!
 
 N = 2; % number of joints

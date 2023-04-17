@@ -13,10 +13,10 @@
 
 % Definition of a class whose ojbects (FunObj) will be used to statically 
 % call the function of this library inside other scripts
-classdef Rob2Lib 
+classdef rob2lib 
     methods (Static)
 
-        % compute_dir_kin: a function to compute the direct kinematic 
+        % A function to compute the direct kinematic 
         % of a N joints robot given the table of DH parameters.
         % OUTPUT: a cell array scructured as:
         % dh_par{1}: i-1_A_i for i = 1, ...,n 
@@ -56,9 +56,9 @@ classdef Rob2Lib
             p = T(1:4,4);
             dh_par = {A, T, p};
         end
-        % end 
+        % end of function
 
-        % Function to compute the derivative of a rotation matrix
+        % A function to compute the derivative of a rotation matrix
         function R_dot = diff_rotation_matrix(R, w)
             syms wx wy wz
             w_sym = [wx,wy,wz];
@@ -72,6 +72,32 @@ classdef Rob2Lib
             Sw = subs(Sw, w_sym, w);
             R_dot = Sw * R;
         end
+        % end of function
+
+        % A function to extract the elements of the inertia matrix M(q) 
+        function M_q = get_inertia_matrix(KINETIC_ENERGY, N)
+            syms q [1 N]
+            syms q_dot [1 N]
+            M_foo = [sym("foo")];
+            
+            for i = (1:N)
+                KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
+            end
+            
+            for r = (1:N)
+                for c = (1:N)
+                    if ((r == c))
+                        M_foo(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
+                    else
+                        K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
+                        K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
+                        M_foo(r,c) = simplify(K_reduced_qrc);
+                    end
+                end
+            end
+            M_q = M_foo;
+        end
+        % end of funtion
      
     end
 end
