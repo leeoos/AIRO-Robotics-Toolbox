@@ -6,8 +6,8 @@ close all
 clear all
 clc
 
-my_path = getenv("ROB2LIB_PATH");
-addpath(my_path);
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
 rob2fun = rob2lib();
 
 %% INPUTS
@@ -15,36 +15,26 @@ rob2fun = rob2lib();
 
 N = 4; % number of joints 
 
-% Standard symbolic variables
-syms q [1 N]
-syms L [1 N] 
-syms d [1 N]
-syms m [1 N]
-syms g0
+% Suppose diagonal ineria matrix for each link
+I_diag = true; 
 
-assume(m,{'real', 'positive'})
-assume(d,{'real', 'positive'})
-assume(L,{'real', 'positive'})
+% Load symbols in the workspace
+run('rob2symb.m')
 
-% Direct kinematics.
-DHTABLE = [        
-    0   L1   0   q1;
-    0   L2   0   q2;
-    0   L3   0   q3;
-    0   L4   0   q4;
-];
-
-% Vectors of CoM relative to Reference Frame i
-R_CoM = {[-L1+d1;0;0;1], [-L2+d2;0;0;1], [-L3+d3;0;0;1], [-L4+d4;0;0;1]};
-
+% Definition of gravity vector
+% Mind the position of gravity
 g = [
     0;
     -g0;
     0;
 ];
 
+% load robot datasheet
+run(lib_path+"/models/planar_4R_model.m")
+
 %% END OF INPUTS
 
+%% INFORMATION EXTRACTION
 % Extraction of DH parametrs
 pose = rob2fun.compute_dir_kin(DHTABLE);
 A = pose{1}; % cell array of chain transformations
@@ -90,7 +80,7 @@ for i = (1:N)
     DYN_COEFF{i} = collect(g_q(i),[cos(q1), cos(q1+q2), cos(q1+q2+q3), cos(q1+q2+q3+q3)]);
     DYN_COEFF{i} = subs(DYN_COEFF{i}, g0, 1);
     DYN_COEFF{i} = subs(DYN_COEFF{i}, subs_array, subs_values);
-    DYN_COEFF{i} = subs(DYN_COEFF{i}, q, ones(1,size(q,2)));
+    DYN_COEFF{i} = subs(DYN_COEFF{i}, transpose(q), ones(1,size(q,1)));
 end
 
 dynamic_coeff = [];

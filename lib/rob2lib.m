@@ -2,21 +2,28 @@
 % Authors: Massimo, Leonardo, Paolo, Francesco
 % This is a library of MATLAB functions used to solve robotics problems.
 %%% USAGE: %%%
-% Import "lib" and "config" directories inside your work directory and 
-% run the appropriate script for your system inside ".config".
-% Then add the following header on top of your script:
+% Import "lib" directory and "start_matlab.sh" inside your work directory 
+% and run MATLAB via "start_matlab.sh" script. Then add the following header 
+% on top of your script:
 %%% HEADER %%%
-% path = getenv("ROB2LIB_PATH")
-% addpath(path);
-% FunObj = Rob2Lib();
+% clc 
+% close all
+% clear all
+% lib_path = getenv("ROB2LIB_PATH");
+% addpath(lib_path);
+% rob2fun = rob2lib();
 %%% END %%%
 
-% Definition of a class whose ojbects (FunObj) will be used to statically 
-% call the function of this library inside other scripts
+
 classdef rob2lib 
+    % Definition of library class. Objact of this class can call 
+    % library functions as statics methods.
 
     methods (Static)
+    % Definition of statics methos to use as library function inside
+    % robotics scripts.
 
+    %% KINEMATICS
         function dh_par = compute_dir_kin(DHTABLE)
             % A function to compute the direct kinematic 
             % of a N joints robot given the table of DH parameters.
@@ -61,6 +68,8 @@ classdef rob2lib
         end
         % end of function
 
+    %% DYNAMICS
+
         function M_q = compute_inertia_matrix(KINETIC_ENERGY, N)
             % A function to extract the elements of the inertia matrix M(q) 
             % of a robot's dynamic model
@@ -70,6 +79,7 @@ classdef rob2lib
             q_dot = transpose(q_dot);
             M_foo = [sym("foo")];
             
+            % Collection of q_dot terms
             for i = (1:N)
                 KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
             end
@@ -106,13 +116,14 @@ classdef rob2lib
             syms m [1 N]
              
             % Computation of coriolis, centrifugal and gravity terms
-            c_q_q_dot = []; 
+            c_q_q_dot = [sym("foo"); sym("bar")]; %zeros(N,1); %[]; 
             for i = (1:N)
                 dMi_dq = jacobian(M_q(:,i), q);
                 dM_dqi = diff(M_q, q(i));
                 Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
                 ci = simplify(transpose(q_dot)*Ci*q_dot);
-                c_q_q_dot = [c_q_q_dot;ci];
+                c_q_q_dot(i) = ci;
+                %c_q_q_dot = [c_q_q_dot;ci];
             end
             c_q_q_dot = simplify(expand(simplify(c_q_q_dot)));
             
@@ -128,11 +139,69 @@ classdef rob2lib
             g_q = simplify(expand(simplify(gradient(U, q))));
 
             % Return values
-            N_terms = {c_q_q_dot, g_q};
+            N_terms = {c_q_q_dot, U, g_q};
+        end
+        % end of function
+
+        function dyn_matrix = compute_dyn_matrix(model, da, N)
+            % Experimental function to compute the dynamic matrix                     
+            
+            % Rewriting the dynamic model with a1,a2, ..., an
+            NUM_DYN = size(da,2);
+            syms a [1 NUM_DYN]
+            model = simplify(subs(model,da,a));
+            for i = (1: N)
+                model(i) = collect(simplify(model(i)), a);
+            end
+            disp("Dynamic Model with a")
+            model
+            
+            % Computation of Dynamic "regressor" matrix
+            Y = [sym("foo")];
+            for r = (1:N)
+                for c = (1 : NUM_DYN)
+                    Y(r,c) = diff(model(r), a(c));
+                end
+            end
+            dyn_matrix = Y;
         end
         % end of function
              
     end
 end
+
+
+%% EXPERIMENTAL
+% aliases = sym("alias",[1 N]);
+% q_dot_squared = [sym("foo")];
+% for i = (1:N)
+%     q_dot_squared(i) = str2sym("q_dot"+string(i)+"^2");
+% end
+% q_dot_squared;
+% KIN_alias = subs(KINETIC_ENERGY,q_dot_squared,aliases);
+% 
+% reduced_q_dot = [sym("foo")];
+% M = [sym("bar")];
+% for r = (1:N)
+%     for c = (1:N)
+%         if (r == c)
+%             reduced_alias = aliases(aliases~=aliases(r));
+%             KIN_q_dot_squared = subs(KIN_alias, transpose(q_dot), zeros(1,N));
+%             KIN_qr_dot_squared = subs(KIN_q_dot_squared, reduced_alias, zeros(1,N-1));
+%             M(r,c) = simplify(2*subs(KIN_qr_dot_squared, aliases(r), 1));
+%         else
+%             reduced_q_dot = transpose(q_dot);
+%             reduced_q_dot(reduced_q_dot == q_dot(c)) = [];
+%             reduced_q_dot(reduced_q_dot == q_dot(r)) = [];
+%             KIN_q_dot = subs(KIN_alias, aliases, zeros(1,N));
+%             if not(isempty(reduced_q_dot))
+%                 KIN_q_dot = subs(KIN_q_dot, reduced_q_dot, zeros(1,N-2));
+%             end
+%             M(r,c) = subs(KIN_q_dot, {q_dot(r),q_dot(c)}, {1,1});
+%         end
+%     end
+% end
+% disp(["Are M_experimental and M_q equal?", isequal(M, M_q)])
+%% END OF EXPERIMENTAL
 
      

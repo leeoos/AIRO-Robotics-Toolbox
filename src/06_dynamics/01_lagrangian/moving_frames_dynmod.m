@@ -5,63 +5,41 @@
 
 clc 
 close all
+clearvars
 clear all
 
-my_path = getenv("ROB2LIB_PATH");
-addpath(my_path);
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
 rob2fun = rob2lib();
 
 %% INPUTS 
 % PAY ATTENTION: update for each problem!
 
-syms L1 L2 L3 q1 q2 q3 g0
+N = 3; % number of joints
 
+% Suppose diagonal ineria matrix for each link
+I_diag = true; 
+
+% Load symbols in the workspace
+run('rob2symb.m')
+
+% Inertia matrix for each link
+%celldisp(I) % uncomment for debug
+
+% Definition of gravity vector
+% Mind the position of gravity
 g = [
     0;
     g0;
     0;
-    
-]
-
-% Direct kinematics.
-DHTABLE = [        
-    0    L1     0   q1;
-    pi/2 0      0   q2;
-    0    L3     0   q3;
-];
-N = size(DHTABLE, 1); % number of joints
-
-syms d1 d2 d3 V F D C E
-% Vectro of the centers of m
-R_CoM = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
-
-% sigma vector:
-% 0: revolout 
-% 1: prismatic
-sigma = [
-    0;
-    0;
-    0;
 ];
 
-% Initial conditions for angular velocity
-initial_omega = [
-    0;
-    0;
-    0;
-];
-OMEGA = cell(1, N);
-OMEGA{1} = initial_omega;
+% load robot datasheet
+run(lib_path+"/models/spatial_model.m")
 
-% Initial conditions for linear velocity
-initial_velocity = [
-    0;
-    0;
-    0;
-];
-VELOCITY = cell(1, N);
-VELOCITY{1} = initial_velocity;
+%% END OF INPUTS
 
+%% INFORMATION EXTRACTION
 % DH parameters
 dh_param = rob2fun.compute_dir_kin(DHTABLE);
 A = dh_param{1}; % cell array of chain transformations
@@ -74,36 +52,6 @@ for i = (1:N)
     A_i = A_i*A{i};
     A_i(1:3,:)
     W_CoM{i} = A_i * [R_CoM{i};1];
-end
-
-% Initialization of symbolics vectors for q, q_dot and q_d_dot
-syms q [1 N]
-syms q_dot [1 N]
-q = transpose(q);
-q_dot = transpose(q_dot);
-
-syms m [1 N]
-% Inertia Matricies (Evaluate if you have numbers!)
-% X
-syms Ixx [1 N]
-syms Ixy [1 N]
-syms Ixz [1 N]
-% Y
-syms Iyx [1 N]
-syms Iyy [1 N]
-syms Iyz [1 N]
-% Z
-syms Izz [1 N]
-syms Izx [1 N]
-syms Izy [1 N]
-
-I = cell(1,3);
-for i =(1:N)
-    I{i} = [
-        Ixx(i), Ixy(i), Ixz(i);
-        Ixy(i), Iyy(i), Iyz(i);
-        Ixz(i), Iyz(i), Izz(i);
-    ];
 end
 
 %% KINETIC ENERGY 
@@ -135,94 +83,168 @@ for i = (1 : N)
     % Velocity of centers of m
     velocity_CoM = simplify(VELOCITY{i+1} + cross(OMEGA{i+1}, R_CoM{i}));
 
+    % Kinetic energy of each link
     KINETIC_ENERGY = KINETIC_ENERGY + (...
                      (1/2*m(i)*transpose(velocity_CoM)*velocity_CoM) + ... 
                      (1/2*transpose(OMEGA{i+1})*I{i}*OMEGA{i+1})...
                     );
     disp(["Step ", i])
-    KINETIC_ENERGY = simplify(KINETIC_ENERGY)
+    KINETIC_ENERGY = simplify(KINETIC_ENERGY);
+
+    % Semplification of kinetic energy
+    collect(simplify(expand(simplify(KINETIC_ENERGY))),q_dot.^2)
     
 end
-KINETIC_ENERGY = simplify(expand(simplify(KINETIC_ENERGY)))
+KINETIC_ENERGY = simplify(expand(simplify(KINETIC_ENERGY)));
+disp("Kinetic energy T")
+KINETIC_ENERGY
 
 %% M(q) INERTIA MATRIX
-% Collection of q_dot terms
-for i = (1:N)
-    KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
-end
-
-syms foo % tmp symbol
-M_q = foo;
-for r = (1:N)
-    for c = (1:N)
-        if ((r == c))
-            M_q(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
-        else
-            K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
-            K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
-            M_q(r,c) = simplify(K_reduced_qrc);
-        end
-    end
-end
+% Extraction M(q) elements
+M_q = rob2fun.compute_inertia_matrix(KINETIC_ENERGY, N);
 disp("M(q) Inertia Matrix")
 M_q
 
-%% EXPERIMENTAL
-aliases = sym("alias",[1 N]);
-q_dot_squared = [sym("foo")];
-for i = (1:N)
-    q_dot_squared(i) = str2sym("q_dot"+string(i)+"^2");
-end
-q_dot_squared;
-KIN_alias = subs(KINETIC_ENERGY,q_dot_squared,aliases);
-
-reduced_q_dot = [sym("foo")];
-M = [sym("bar")];
-for r = (1:N)
-    for c = (1:N)
-        if (r == c)
-            reduced_alias = aliases(aliases~=aliases(r));
-            KIN_q_dot_squared = subs(KIN_alias, transpose(q_dot), zeros(1,N));
-            KIN_qr_dot_squared = subs(KIN_q_dot_squared, reduced_alias, zeros(1,N-1));
-            M(r,c) = simplify(2*subs(KIN_qr_dot_squared, aliases(r), 1));
-        else
-            reduced_q_dot = transpose(q_dot);
-            reduced_q_dot(reduced_q_dot == q_dot(c)) = [];
-            reduced_q_dot(reduced_q_dot == q_dot(r)) = [];
-            KIN_q_dot = subs(KIN_alias, aliases, zeros(1,N));
-            if not(isempty(reduced_q_dot))
-                KIN_q_dot = subs(KIN_q_dot, reduced_q_dot, zeros(1,N-2));
-            end
-            M(r,c) = subs(KIN_q_dot, {q_dot(r),q_dot(c)}, {1,1});
-        end
-    end
-end
-disp(["Are M_experimental and M_q equal?", isequal(M, M_q)])
-%% END OF EXPERIMENTAL
-
 %% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
+% Computation of coriolis, centrifugal and gravity terms
+N_terms = rob2fun.compute_n_terms(M_q, W_CoM, g, N);
 
-% Computation of coriolis and centrifugal term
-c_q_q_dot = []; 
+c_q_q_dot = N_terms{1};
+disp("Coriolis and centrifugal term")
+c_q_q_dot
 
-for i = (1:N)
-    dMi_dq = jacobian(M_q(:,i), q);
-    dM_dqi = diff(M_q, q(i));
-    Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
-    ci = simplify(transpose(q_dot)*Ci*q_dot);
-    c_q_q_dot = [c_q_q_dot;ci];
-end
-c_q_q_dot = simplify(expand(simplify(c_q_q_dot)))
+% Potential energy
+POTENTIAL_ENERGY = N_terms{2};
+disp("Potential energy U")
+POTENTIAL_ENERGY
 
-% Computation Potential energy 
-U = 0;
-for i = (1:N)
-    U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
-    U = simplify(U + U_i);
-end
-U;
-
-% Computation of gravity term g(q)
+g_q = N_terms{3};
 disp("Gravity term")
-g_q = simplify(expand(gradient(U, q)))
+g_q
+
+%% DYNAMIC MODEL u
+model = M_q*q_d_dot + c_q_q_dot + g_q;
+disp("Dynamic Model with a")
+model
+
+
+%% EMERGENCY STAFF
+% % Initialization of symbolics vectors for q, q_dot and q_d_dot
+% syms q [1 N]
+% syms q_dot [1 N]
+% q = transpose(q);
+% q_dot = transpose(q_dot);
+% 
+% syms m [1 N]
+% % Inertia Matricies (Evaluate if you have numbers!)
+% % X
+% syms Ixx [1 N]
+% syms Ixy [1 N]
+% syms Ixz [1 N]
+% % Y
+% syms Iyx [1 N]
+% syms Iyy [1 N]
+% syms Iyz [1 N]
+% % Z
+% syms Izz [1 N]
+% syms Izx [1 N]
+% syms Izy [1 N]
+% 
+% I = cell(1,3);
+% for i =(1:N)
+%     I{i} = [
+%         Ixx(i), Ixy(i), Ixz(i);
+%         Ixy(i), Iyy(i), Iyz(i);
+%         Ixz(i), Iyz(i), Izz(i);
+%     ];
+% end
+
+% % Direct kinematics.
+% DHTABLE = [        
+%     0    L1     0   q1;
+%     pi/2 0      0   q2;
+%     0    L3     0   q3;
+% ];
+% 
+% 
+% syms V F D C E
+% % Vectro of the centers of m
+% R_CoM = {[-L1+d1;0;0], [0;-L2+d2;0], [-L3+d3;0;0]};
+% 
+% % sigma vector:
+% % 0: revolout 
+% % 1: prismatic
+% sigma = [
+%     0;
+%     0;
+%     0;
+% ];
+% 
+% % Initial conditions for angular velocity
+% initial_omega = [
+%     0;
+%     0;
+%     0;
+% ];
+% OMEGA = cell(1, N);
+% OMEGA{1} = initial_omega;
+% 
+% % Initial conditions for linear velocity
+% initial_velocity = [
+%     0;
+%     0;
+%     0;
+% ];
+% VELOCITY = cell(1, N);
+% VELOCITY{1} = initial_velocity;
+
+% %% M(q) INERTIA MATRIX
+% % Collection of q_dot terms
+% for i = (1:N)
+%     KINETIC_ENERGY = collect(KINETIC_ENERGY, q_dot(i)^2);
+% end
+% 
+% syms foo % tmp symbol
+% M_q = foo;
+% for r = (1:N)
+%     for c = (1:N)
+%         if ((r == c))
+%             M_q(r,c) = simplify(diff(KINETIC_ENERGY, q_dot(r), 2));
+%         else
+%             K_reduced_qr = simplify(diff(KINETIC_ENERGY, q_dot(c)));
+%             K_reduced_qrc = simplify(diff(K_reduced_qr, q_dot(r)));
+%             M_q(r,c) = simplify(K_reduced_qrc);
+%         end
+%     end
+% end
+% disp("M(q) Inertia Matrix")
+% M_q
+% 
+% 
+% 
+% %% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
+% 
+% % Computation of coriolis and centrifugal term
+% c_q_q_dot = []; 
+% 
+% for i = (1:N)
+%     dMi_dq = jacobian(M_q(:,i), q);
+%     dM_dqi = diff(M_q, q(i));
+%     Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
+%     ci = simplify(transpose(q_dot)*Ci*q_dot);
+%     c_q_q_dot = [c_q_q_dot;ci];
+% end
+% c_q_q_dot = simplify(expand(simplify(c_q_q_dot)))
+% 
+% % Computation Potential energy 
+% U = 0;
+% for i = (1:N)
+%     U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
+%     U = simplify(U + U_i);
+% end
+% U;
+% 
+% % Computation of gravity term g(q)
+% disp("Gravity term")
+% g_q = simplify(expand(gradient(U, q)))
 
