@@ -5,11 +5,12 @@
 % kinematics bounds on the joint velocities
 
 close all
+clearvars
 clear all
 clc
 
-my_path = getenv("ROB2LIB_PATH");
-addpath(my_path);
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
 rob2fun = rob2lib();
 
 %% INPUTS

@@ -46,14 +46,13 @@ nominal_parameters = [
 ];
 
 % Insert here nominal values for DH parameters
-% PAY ATTENTION to the order: alpha, a, d, theta
-nominal_values = [
-    1,...
-    1
-];
+% PAY ATTENTION TO THE ORDER: alpha, a, d, theta
+% example: [alpha1,..., alphan, a1,..., an, d1,..., dn, theta1,...,thetan]
+% leave empty the values that yu do not have
+nominal_values = [1, 1];
 
 % Insert measured DH parameters 
-experimental_variables = [q1, q2];
+experimental_variables = q;
 experimental_values = {[0,0], [pi/2,0], [pi/4,-pi/4], [0,pi/4]};
 
 % Insert here experimental variables data

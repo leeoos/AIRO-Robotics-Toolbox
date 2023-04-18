@@ -115,40 +115,44 @@ classdef rob2lib
             syms m [1 N]
              
             % Computation of coriolis, centrifugal and gravity terms
-            c_q_q_dot = [sym("foo"); sym("bar")]; %zeros(N,1); %[]; 
+            c_q_q_dot = [sym("foo"); sym("bar")]; 
+            S_q_q_dot = [];
             for i = (1:N)
                 dMi_dq = jacobian(M_q(:,i), q);
                 dM_dqi = diff(M_q, q(i));
-                Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
-                ci = simplify(transpose(q_dot)*Ci*q_dot);
+                Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi)
+                ci = simplify(transpose(q_dot)*Ci*q_dot)
                 c_q_q_dot(i) = ci;
+                S_q_q_dot = [S_q_q_dot; transpose(q_dot)*Ci]
                 %c_q_q_dot = [c_q_q_dot;ci];
             end
             c_q_q_dot = simplify(expand(simplify(c_q_q_dot)));
             
             % Computation Potential energy 
+            g_q = 0;
             U = 0;
-            for i = (1:N)
-                U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
-                U = simplify(U + U_i);
+            if not(isempty(g))
+                U = 0;
+                for i = (1:N)
+                    U_i = simplify(- m(i)*(transpose(g))*W_CoM{i}(1:3));
+                    U = simplify(U + U_i);
+                end
+                U;
+                
+                % Computation of gravity term g(q)
+                g_q = simplify(expand(simplify(gradient(U, q))));
             end
-            U;
-            
-            % Computation of gravity term g(q)
-            g_q = simplify(expand(simplify(gradient(U, q))));
 
             % Return values
-            N_terms = {c_q_q_dot, U, g_q};
+            N_terms = {c_q_q_dot, U, g_q, S_q_q_dot};
         end
         % end of function
 
-        function dyn_matrix = compute_dyn_matrix(model, da, N)
+        function dyn_matrix = compute_dyn_matrix(model, da, a, N)
             % Experimental function to compute the dynamic matrix                     
             
             % Rewriting the dynamic model with a1,a2, ..., an
-            NUM_DYN = size(da,2);
-            syms a [1 NUM_DYN]
-            model = simplify(subs(model,da,a));
+            model = simplify(subs(model, da, a));
             for i = (1: N)
                 model(i) = collect(simplify(model(i)), a);
             end
@@ -156,6 +160,7 @@ classdef rob2lib
             model
             
             % Computation of Dynamic "regressor" matrix
+            NUM_DYN = size(da,2);
             Y = [sym("foo")];
             for r = (1:N)
                 for c = (1 : NUM_DYN)
