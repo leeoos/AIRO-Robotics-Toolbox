@@ -2,76 +2,103 @@
 % Author: Massimo, Leonardo, Paolo, Francesco
 % 
 
-clc
+clc 
 close all
-syms q1 q2 q3 q4 
+clearvars
+clear all
+
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
+rob2fun = rob2lib();
 
 %% INPUTS
 
-N = 3; % number of joints
+N = 4; % number of joints
 
-joints = [q1; q2; q3];
+% Symbolic joint variables
+syms q [1 N]
+q = transpose(q); 
 
+% Other symbolic variables
+syms l [1 N]
+
+% Direct kinematics
 dir_kin = [
-    cos(q1) + cos(q1+q2) + cos(q1+q2+q3);
-    sin(q1) + sin(q1+q2) + sin(q1+q2+q3);
+    cos(q1) + cos(q1+q2) + cos(q1+q2+q3) + cos(q1+q2+q3+q4);
+    sin(q1) + sin(q1+q2) + sin(q1+q2+q3) + sin(q1+q2+q3+q4);
 ];
 
+% Configuration for evaluation
 current_config = [
-    2*pi/5;
     pi/2;
-    -pi/4;
+    -pi/2;
+    pi/2;
+    -pi/2;
 ];
 
-% Technical bounds
+% Technical bounds:
 % Joint position
-
-Q_min = [-pi/2; 0; -pi/4];
-Q_max = [pi/2; 2*pi/3; pi/4];
+Q_min = [];
+Q_max = [];
 
 % Joint velocities
-V_min = [-2; -2; -2];
-V_max = [2; 2; 2];
+V_min = [-10; -10; -10; -10];
+V_max = [2; 2; 4; 4];
 
 % Joint accelerationsq1 ∈ [−π/2, π/2] , q2 ∈ [0, 2π/3] , q3 ∈ [−π/4, π/4] 
 A_min = [];
 A_max = [];
 
+% End effector position
 ee_psition = [];
-ee_velocity = [-3; 0];
+ee_velocity = [-4; -1.5];
 
-%% Precomputation
+%% END OF INPUTS
+
+%% PRECOMPUTATION
 % Jacobian
-J = jacobian(dir_kin, joints)
-J = subs(J, joints, current_config);
+J = jacobian(dir_kin, q);
+J = subs(J, q, current_config);
+disp("evaluated jacobian in current configuration")
+J
+
+% TO GENERALIZE Joint velocity limits
+Q_dot_min = V_min;
+Q_dot_max = V_max;
 
 %% SNS Algorithm
-
-% Preallocation of variable
-n = size(joints,1);
+% Preallocation of variables
+n = size(q,1);
 m = size(ee_velocity,1);
-s_star = 0;
-s = 1;
 q_bar_dot = zeros(n,1);
 q_N_dot = zeros(n,1);
 W = eye(n);
-limit_exided = true;
+limit_exceeded = true;
 
-while(limit_exided)
-    limit_exided = false;
+% Scaling parameters 
+s_star = 0;
+s = 1;
+
+% Loop to determin
+while(limit_exceeded)
+    limit_exceeded = false;
     q_bar_dot = q_N_dot + pinv(J*W)*(ee_velocity - J*q_N_dot);
-    %q_bar_dot = myLibrary.rvs(q_bar_dot);
+    q_bar_dot = vpa(simplify(q_bar_dot),3);
+    disp("Desired velocity")
+    q_bar_dot
 
+    % Check if joint velocities bounds are exceeded
     for i = (1 : n)
-        if (q_bar_dot(i) < Q_min(i) || q_bar_dot(i) > Q_max(i))
-            limit_exided = true;
+        if (q_bar_dot(i) < Q_dot_min(i) || q_bar_dot(i) > Q_dot_max(i))
+            limit_exceeded = true;
         end
     end
 
-    if (limit_exided)
+    % Scaling of most critical joint
+    if (limit_exceeded)
         a = pinv(J*W)*ee_velocity;
         b = q_bar_dot - a;
-        result = getTaskScalingFactor(a, b, n, V_min, V_max); % check if vmax == qmax
+        result = getTaskScalingFactor(a, b, n, Q_dot_min, Q_dot_max); 
         tsf = result(1);
 
         if tsf > s_star 
@@ -83,10 +110,10 @@ while(limit_exided)
         j = result(2); % most critical joint
         W(j,j) = 0;
 
-        if q_bar_dot(j) > V_max(j)
-            q_N_dot(j) = V_max(j);
-        elseif q_bar_dot(j) < V_min(j)
-            q_N_dot(j) = V_min(j);
+        if q_bar_dot(j) > Q_dot_max(j)
+            q_N_dot(j) = Q_dot_max(j);
+        elseif q_bar_dot(j) < Q_dot_min(j)
+            q_N_dot(j) = Q_dot_min(j);
         end
 
         if rank(J*W) < m
@@ -94,7 +121,7 @@ while(limit_exided)
             W = W_star;
             q_N_dot = q_N_dot_star;
             q_bar_dot = q_N_dot + pinv(J*W)*(s*ee_velocity - J*q_N_dot);
-            limit_exided = false;
+            limit_exceeded = false;
         end
     end
 end

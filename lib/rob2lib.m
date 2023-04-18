@@ -101,7 +101,6 @@ classdef rob2lib
         end
         % end of funtion
 
-
         function N_terms = compute_n_terms(M_q, W_CoM, g, N)
             % A funtion to compute the coriolis, centrifugal c(q, q_dot) and 
             % gravity terms g(q) of a robot's dynamic model
