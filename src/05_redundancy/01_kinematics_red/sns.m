@@ -1,6 +1,7 @@
 %% Sopravvivenza_AIRO! 
-% Author: Massimo, Leonardo, Paolo, Francesco
-% 
+% Author: Massimo, Leonardo, Paolo, Francescoif rank(J*W) < m
+% Implementation of Saturation in the Null Space method 
+% to handle redundan manipulators
 
 clc 
 close all
@@ -12,6 +13,7 @@ addpath(lib_path);
 rob2fun = rob2lib();
 
 %% INPUTS
+% PAY ATTENTION: update for each problem!
 
 N = 4; % number of joints
 
@@ -42,7 +44,7 @@ Q_min = [];
 Q_max = [];
 
 % Joint velocities
-V_min = [-10; -10; -10; -10];
+V_min = [-2; -2; -4; -4];
 V_max = [2; 2; 4; 4];
 
 % Joint accelerationsq1 ∈ [−π/2, π/2] , q2 ∈ [0, 2π/3] , q3 ∈ [−π/4, π/4] 
@@ -72,16 +74,18 @@ n = size(q,1);
 m = size(ee_velocity,1);
 q_bar_dot = zeros(n,1);
 q_N_dot = zeros(n,1);
-W = eye(n);
+W = eye(n); % mask for joint velocity
 limit_exceeded = true;
 
 % Scaling parameters 
-s_star = 0;
+s_star = 0; % largest scaling factor so far
 s = 1;
 
-% Loop to determin
+% Loop to determin best joint velocity inside the bounds
 while(limit_exceeded)
     limit_exceeded = false;
+
+    % Computation of tmp q_dot
     q_bar_dot = q_N_dot + pinv(J*W)*(ee_velocity - J*q_N_dot);
     q_bar_dot = vpa(simplify(q_bar_dot),3);
     disp("Desired velocity")
@@ -98,7 +102,7 @@ while(limit_exceeded)
     if (limit_exceeded)
         a = pinv(J*W)*ee_velocity;
         b = q_bar_dot - a;
-        result = getTaskScalingFactor(a, b, n, Q_dot_min, Q_dot_max); 
+        result = get_task_scaling_factor(a, b, n, Q_dot_min, Q_dot_max); 
         tsf = result(1);
 
         if tsf > s_star 
@@ -125,9 +129,12 @@ while(limit_exceeded)
         end
     end
 end
-q_dot_SNS = round(vpa(q_bar_dot),3)
+q_dot_SNS = round(vpa(q_bar_dot),3);
+disp("Final joint velocity")
+q_dot_SNS
 
-function result = getTaskScalingFactor(a, b, n, Q_dot_min, Q_dot_max)
+%% FUNCTIONS
+function result = get_task_scaling_factor(a, b, n, Q_dot_min, Q_dot_max)
     S_max = [];
     S_min = [];
     
