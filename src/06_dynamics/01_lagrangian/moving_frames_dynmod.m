@@ -106,7 +106,7 @@ disp("M(q) Inertia Matrix")
 M_q
 
 %% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
-% Computation of coriolis, centrifugal and gravity terms
+disp("Computation of coriolis, centrifugal and gravity terms")
 N_terms = rob2fun.compute_n_terms(M_q, W_CoM, g, N);
 
 c_q_q_dot = N_terms{1};
@@ -126,6 +126,49 @@ g_q
 model = M_q*q_d_dot + c_q_q_dot + g_q;
 disp("Dynamic Model with a")
 model
+
+%% COMPUTATION OF DYNAMICS COEFFICIENTS (EXPERIMENTAL)
+% PAY ATTENTION !!! 
+disp("PAY ATTENTION THIS MAY NOT WORK !!!")
+disp("This part is dedicated to the computation of the dynamic coefficient.")
+disp("This means that require some manual computation !!!")
+disp(" ")
+
+% % "Easy" way to extract dynamic coefficents
+% triang_M = [sym("foo"); sym("bar")];
+% index = 1;
+% for r = (1:N)
+%     for c = (r:N)
+%         triang_M(index) = M_q(r,c);
+%         index = index + 1;
+%         %triang_M = [triang_M; M_q(r,c)];
+%     end
+% end
+% disp("Extract the dynamic coefficients form here")
+% triang_M 
+% 
+% % PAY ATTENTION !!! Insert here the values for a1, a2, ..., an
+% da1 = m1 + m2 + m3 + m4;
+% da2 = m2 + m3 + m4;
+% da3 = Izz3 + m3*d3^2 + Izz4 + m4*d4^2 + m4*L3^2;
+% da4 = Izz4 + m4*d4^2;
+% da5 = m4*d4;
+% da6 = m3*d3 + m4*L3;
+% 
+% % PAY ATTENTION !!! edit also this vector
+% da = [da1, da2, da3, da4, da5, da6];
+% dynamic_coefficients = transpose(da);
+% disp("Dynamic coefficients")
+% dynamic_coefficients
+% 
+% % Symbolic dynamic coefficients
+% NUM_DYN = size(da,2);
+% syms a [1 NUM_DYN]
+
+% % Comutation of matrix Y
+% Y_q_q_dot_q_d_dot = rob2fun.compute_dyn_matrix(model, da, a, N);
+% disp("Y matrix MAY BE NOT COMPLETE")
+% Y_q_q_dot_q_d_dot
 
 
 %% EMERGENCY STAFF

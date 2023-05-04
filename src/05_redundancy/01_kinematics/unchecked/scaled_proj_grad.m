@@ -5,11 +5,12 @@
 % kinematics bounds on the joint velocities
 
 close all
+clearvars
 clear all
 clc
 
-my_path = getenv("ROB2LIB_PATH");
-addpath(my_path);
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
 rob2fun = rob2lib();
 
 %% INPUTS
@@ -106,3 +107,20 @@ disp(grad_H)
 fprintf("This is the q_dot result by lite sns method: \n")
 q_dot_sns = vpa(grad_H + J_pinv*(s*r_dot - J_eval*grad_H),4);
 disp(q_dot_sns)
+
+
+%% TASK SCALING
+
+% % Insert your joint velocity bounds
+% q_dot_limit = [4,4,4,4];
+% 
+% % Computation of s parameter for task scaling
+% [max_q, i] = max(q_dot) %Take the maximum of q velocity and its index
+% 
+% if max_q > q_dot_limit(i)
+%     s = vpa((q_dot_limit(i) - grad_H_eval(i))/(max_q-grad_H_eval(i)),4)
+% 
+% % q_dot computation with task scaling
+% fprintf("This is the q_dot result by PG method with task scaling:")
+% q_dot = vpa(grad_H_eval + J_pinv*(s*r_dot - J_eval*grad_H_eval),4)
+% end

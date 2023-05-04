@@ -63,7 +63,7 @@ disp("M(q) Inertia Matrix")
 M_q
 
 %% CORIOLIS, CENTRIFUGAL c(q, q_dot) AND GRAVITY g(q)
-% Computation of coriolis, centrifugal and gravity terms
+disp("Computation of coriolis, centrifugal and gravity terms")
 N_terms = rob2fun.compute_n_terms(M_q, W_CoM, g, N);
 
 c_q_q_dot = N_terms{1};
@@ -108,7 +108,7 @@ triang_M
 da1 = m1 + m2 + m3 + m4;
 da2 = m2 + m3 + m4;
 da3 = Izz3 + m3*d3^2 + Izz4 + m4*d4^2 + m4*L3^2;
-da4 = Izz4 +m4*d4^2;
+da4 = Izz4 + m4*d4^2;
 da5 = m4*d4;
 da6 = m3*d3 + m4*L3;
 
@@ -118,9 +118,13 @@ dynamic_coefficients = transpose(da);
 disp("Dynamic coefficients")
 dynamic_coefficients
 
+% Symbolic dynamic coefficients
+NUM_DYN = size(da,2);
+syms a [1 NUM_DYN]
+
 % Comutation of matrix Y
-Y_q_q_dot_q_d_dot = rob2fun.compute_dyn_matrix(model, da, N);
-disp("Y matrix")
+Y_q_q_dot_q_d_dot = rob2fun.compute_dyn_matrix(model, da, a, N);
+disp("Y matrix MAY BE NOT COMPLETE")
 Y_q_q_dot_q_d_dot
 
 
