@@ -36,7 +36,7 @@ g = [
 ];
 
 % load robot datasheet
-run(lib_path+"/models/unknown_model.m")
+run(lib_path+"/models/planar_model.m")
 
 %% END OF INPUTS
 

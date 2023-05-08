@@ -134,18 +134,18 @@ disp("This part is dedicated to the computation of the dynamic coefficient.")
 disp("This means that require some manual computation !!!")
 disp(" ")
 
-% % "Easy" way to extract dynamic coefficents
-% triang_M = [sym("foo"); sym("bar")];
-% index = 1;
-% for r = (1:N)
-%     for c = (r:N)
-%         triang_M(index) = M_q(r,c);
-%         index = index + 1;
-%         %triang_M = [triang_M; M_q(r,c)];
-%     end
-% end
-% disp("Extract the dynamic coefficients form here")
-% triang_M 
+% "Easy" way to extract dynamic coefficents
+triang_M = [sym("foo"); sym("bar")];
+index = 1;
+for r = (1:N)
+    for c = (r:N)
+        triang_M(index) = M_q(r,c);
+        index = index + 1;
+        %triang_M = [triang_M; M_q(r,c)];
+    end
+end
+disp("Extract the dynamic coefficients form here")
+triang_M 
 % 
 % % PAY ATTENTION !!! Insert here the values for a1, a2, ..., an
 % da1 = m1 + m2 + m3 + m4;

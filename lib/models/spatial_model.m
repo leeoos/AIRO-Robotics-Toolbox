@@ -7,15 +7,15 @@
 % 1: prismatic
 sigma = [
     0;
-    0;
+    1;
     0;
 ];
 
 % Direct kinematics
 DHTABLE = [        
-    0    L1     0   q1;
-    pi/2 0      0   q2;
-    0    L3     0   q3;
+    pi/2    0      L1   q1;
+    0       0      L2   q2;
+    0       L3     0   q3;
 ];
 
 
@@ -23,13 +23,13 @@ syms V F D C E
 % Vectrors of the centers of mass
 R_CoM = {
     [   
-        -L1+d1;
         0;
+        -L1+d1;
         0;
     ], ...
     [
         0;
-        -L2+d2;
+        q2+d2;
         0;
     ], ...
     [

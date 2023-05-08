@@ -6,23 +6,23 @@
 % Vectors of the centers of masses w.r.t world frame
 W_CoM = {
     [
-        q1-d1; 
+        q1; 
         0; 
         0;
     ], ...
     [
         q1; 
-        q2-d2; 
+        q2; 
         0;
     ], ...
     [   
-        q1 + d3*cos(q3);
-        q2 + d3*sin(q3);
+        q1 + q3;
+        q2;
         0;
     ], ...
     [   
-        q1 + L3*cos(q3) + d4*cos(q3+q4);
-        q2 + L3*sin(q3) + d4*sin(q3+q4);
+        q1 + q3;
+        q2 + q4;
         0;
     ], ...
 };
@@ -42,13 +42,13 @@ CoM_VELOCITY = {
         0;
     ], ...
     [   
-        q_dot1 - d3*sin(q3)*q_dot3; 
-        q_dot2 + d3*cos(q3)*q_dot3; 
+        q_dot1 + q_dot3; 
+        q_dot2; 
         0;
     ], ...
     [   
-        q_dot1 - L3*sin(q3)*q_dot3 - d4*sin(q3+q4)*(q_dot3+q_dot4); 
-        q_dot2 + L3*cos(q3)*q_dot3 + d4*cos(q3+q4)*(q_dot3+q_dot4); 
+        q_dot1 + q_dot3; 
+        q_dot2 + +q_dot4; 
         0;
     ], ...
 };
@@ -70,12 +70,12 @@ OMEGA = {
     [
         0; 
         0; 
-        q_dot3;
+        0;
     ], ...
     [
         0; 
         0; 
-        q_dot3 + q_dot4;
+        0;
     ], ...
 };
 % uncomment for debug
