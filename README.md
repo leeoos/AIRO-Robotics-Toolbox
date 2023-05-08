@@ -1,6 +1,6 @@
 # Robotics Toolbox 
 
-This repository contains some useful materials for the Robotics1 course at DIAG Sapienza. The course covers fundamental concepts in robotics, including direct and inverse kinematics, differential kinematics, trajectory planning, and kinematic control.
+This repository contains some useful materials for the Robotics1 course at DIAG Sapienza. The course covers fundamental concepts in robotics, including direct and inverse kinematics, differential kinematics, trajectory planning, and kinematic controls.
 
 ## Table of Contents
 - [Course Materials](#course-materials)
