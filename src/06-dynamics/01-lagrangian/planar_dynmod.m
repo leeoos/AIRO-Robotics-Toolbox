@@ -16,7 +16,7 @@ rob2fun = rob2lib();
 %% INPUTS
 % PAY ATTENTION: update for each problem!
 
-N = 4; % number of joints
+N = 3; % number of joints
 
 % Suppose diagonal ineria matrix for each link
 I_diag = true; 
@@ -31,12 +31,12 @@ run('rob2symb.m')
 % Mind the position of gravity
 g = [
     0;
-    g0;
+    -g0;
     0;
 ];
 
 % load robot datasheet
-run(lib_path+"/models/planar_model.m")
+run(lib_path+"/models/prp_planar.m")
 
 %% END OF INPUTS
 
@@ -70,12 +70,20 @@ c_q_q_dot = N_terms{1};
 disp("Coriolis and centrifugal term")
 c_q_q_dot
 
+S_q_q_dot = N_terms{2};
+disp("S matrix for coriolis and centrifugal term")
+S_q_q_dot
+
+% Skew Symmetry test for M_dot-2S
+is_M_2S_skew = rob2fun.skew_symmetry_test(M_q, S_q_q_dot, q, q_dot);
+disp(" ")
+
 % Potential energy
-POTENTIAL_ENERGY = N_terms{2};
+POTENTIAL_ENERGY = N_terms{3};
 disp("Potential energy U")
 POTENTIAL_ENERGY
 
-g_q = N_terms{3};
+g_q = N_terms{4};
 disp("Gravity term")
 g_q
 
@@ -104,28 +112,28 @@ end
 disp("Extract the dynamic coefficients form here")
 triang_M 
 
-% PAY ATTENTION !!! Insert here the values for a1, a2, ..., an
-da1 = m1 + m2 + m3 + m4;
-da2 = m2 + m3 + m4;
-da3 = Izz3 + m3*d3^2 + Izz4 + m4*d4^2 + m4*L3^2;
-da4 = Izz4 + m4*d4^2;
-da5 = m4*d4;
-da6 = m3*d3 + m4*L3;
-
-% PAY ATTENTION !!! edit also this vector
-da = [da1, da2, da3, da4, da5, da6];
-dynamic_coefficients = transpose(da);
-disp("Dynamic coefficients")
-dynamic_coefficients
-
-% Symbolic dynamic coefficients
-NUM_DYN = size(da,2);
-syms a [1 NUM_DYN]
-
-% Comutation of matrix Y
-Y_q_q_dot_q_d_dot = rob2fun.compute_dyn_matrix(model, da, a, N);
-disp("Y matrix MAY BE NOT COMPLETE")
-Y_q_q_dot_q_d_dot
+% % PAY ATTENTION !!! Insert here the values for a1, a2, ..., an
+% da1 = m1 + m2 + m3 + m4;
+% da2 = m2 + m3 + m4;
+% da3 = Izz3 + m3*d3^2 + Izz4 + m4*d4^2 + m4*L3^2;
+% da4 = Izz4 + m4*d4^2;
+% da5 = m4*d4;
+% da6 = m3*d3 + m4*L3;
+% 
+% % PAY ATTENTION !!! edit also this vector
+% da = [da1, da2, da3, da4, da5, da6];
+% dynamic_coefficients = transpose(da);
+% disp("Dynamic coefficients")
+% dynamic_coefficients
+% 
+% % Symbolic dynamic coefficients
+% NUM_DYN = size(da,2);
+% syms a [1 NUM_DYN]
+% 
+% % Comutation of matrix Y
+% Y_q_q_dot_q_d_dot = rob2fun.compute_dyn_matrix(model, da, a, N);
+% disp("Y matrix MAY BE NOT COMPLETE")
+% Y_q_q_dot_q_d_dot
 
 
 %% EMERGENCY STAFF

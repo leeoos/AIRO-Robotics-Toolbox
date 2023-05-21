@@ -12,6 +12,7 @@ q_d_dot = transpose(q_d_dot);
 syms l [1 N]
 syms L [1 N]
 syms d [1 N]
+syms k [1 N]
 
 % Dynamic parameters
 syms g0

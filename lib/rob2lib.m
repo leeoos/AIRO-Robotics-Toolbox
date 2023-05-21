@@ -120,10 +120,10 @@ classdef rob2lib
             for i = (1:N)
                 dMi_dq = jacobian(M_q(:,i), q);
                 dM_dqi = diff(M_q, q(i));
-                Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi)
-                ci = simplify(transpose(q_dot)*Ci*q_dot)
+                Ci = 1/2*(dMi_dq + transpose(dMi_dq) - dM_dqi);
+                ci = simplify(transpose(q_dot)*Ci*q_dot);
                 c_q_q_dot(i) = ci;
-                S_q_q_dot = [S_q_q_dot; transpose(q_dot)*Ci]
+                S_q_q_dot = [S_q_q_dot; transpose(q_dot)*Ci];
                 %c_q_q_dot = [c_q_q_dot;ci];
             end
             c_q_q_dot = simplify(expand(simplify(c_q_q_dot)));
@@ -144,7 +144,7 @@ classdef rob2lib
             end
 
             % Return values
-            N_terms = {c_q_q_dot, U, g_q, S_q_q_dot};
+            N_terms = {c_q_q_dot, S_q_q_dot, U, g_q};
         end
         % end of function
 
@@ -168,6 +168,62 @@ classdef rob2lib
                 end
             end
             dyn_matrix = Y;
+        end
+        % end of function
+
+        function is_skew = skew_symmetry_test(M, S, q, q_dot, N)
+            % Skew simmetry test for energy conservation
+
+            N = size(q, 1);
+
+            % New symbols to express q time dependency
+            syms x(t) [1 N]
+            
+            % Time derivative of M
+            M_t_dot = rob2lib().time_derivative(M, q, q_dot);
+            
+            % Conservation of energy theorem 
+            M_2S = simplify(M_t_dot - 2*S);
+            
+            % Test for skewe symmetry
+            is_skew = isequal(M_2S, -transpose(M_2S));
+            if is_skew 
+                disp("M_dot - 2S is skwe symmetric") 
+            end
+        end
+
+
+        function derivative = time_derivative(exp, var, var_dot)
+            % This function compute teh time derivative of a symbolic
+            % expression. It take as imput the expression itself as well as
+            % a column vector of the unknown symbols ans a column vector of 
+            % the unkowns differenciate by time.
+
+            N = size(var, 1);
+
+            % Symbols for time dependencies
+            syms x(t) [1 N]
+            x(t) = transpose(x(t));
+            
+            diff_symbols = [];
+            for i = x(t)
+                diff_symbols = [diff_symbols, diff(i,t)];
+            end
+            diff_symbols;
+            
+            % Explicitation of time dependency in expression
+            exp_t = subs(exp,var, x);
+            
+            % Time derivative
+            exp_t_dot = diff(exp_t, t);
+
+            % Substitution of diff with nominal variables
+            exp_t_dot = subs(exp_t_dot, diff_symbols, var_dot);
+
+            % Substitution of x with nominal variables
+            exp_t_dot = subs(exp_t_dot, x, var);
+
+            derivative = exp_t_dot;
         end
         % end of function
              
