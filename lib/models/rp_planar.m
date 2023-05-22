@@ -2,6 +2,10 @@
 % Insert in the following file all the inputs necessary to compute the
 % dynamic model of a ... robot
 
+lib_path = getenv("ROB2LIB_PATH");
+addpath(lib_path);
+rob2fun = rob2lib();
+
 % PAY ATTENTION: this part require a precomputation that depends on the problem
 % Vectors of the centers of masses w.r.t world frame
 W_CoM = {
@@ -34,6 +38,12 @@ CoM_VELOCITY = {
 };
 % uncomment for debug
 celldisp(CoM_VELOCITY)
+
+% Experimetal
+CoM_VELOCITY_test = {
+    rob2fun.time_derivative(W_CoM{1}, q, q_dot), ...
+    rob2fun.time_derivative(W_CoM{2}, q, q_dot), ...
+}
 
 % Angular velocities of each link
 OMEGA = {

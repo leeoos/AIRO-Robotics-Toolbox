@@ -16,7 +16,7 @@ rob2fun = rob2lib();
 %% INPUTS
 % PAY ATTENTION: update for each problem!
 
-N = 3; % number of joints
+N = 2; % number of joints
 
 % Suppose diagonal ineria matrix for each link
 I_diag = true; 
@@ -30,13 +30,13 @@ run('rob2symb.m')
 % Definition of gravity vector
 % Mind the position of gravity
 g = [
+    g0;
     0;
-    -g0;
     0;
 ];
 
 % load robot datasheet
-run(lib_path+"/models/prp_planar.m")
+run(lib_path+"/models/rp_planar.m")
 
 %% END OF INPUTS
 

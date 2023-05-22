@@ -191,7 +191,7 @@ classdef rob2lib
                 disp("M_dot - 2S is skwe symmetric") 
             end
         end
-
+        % end of function
 
         function derivative = time_derivative(exp, var, var_dot)
             % This function compute teh time derivative of a symbolic
@@ -212,12 +212,12 @@ classdef rob2lib
             diff_symbols;
             
             % Explicitation of time dependency in expression
-            exp_t = subs(exp,var, x);
+            exp_t = subs(exp, var, x);
             
             % Time derivative
             exp_t_dot = diff(exp_t, t);
 
-            % Substitution of diff with nominal variables
+            % Substitution of diff with nominal variables_dot
             exp_t_dot = subs(exp_t_dot, diff_symbols, var_dot);
 
             % Substitution of x with nominal variables
