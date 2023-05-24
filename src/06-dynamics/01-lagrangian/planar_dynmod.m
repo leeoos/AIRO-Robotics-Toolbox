@@ -13,32 +13,9 @@ lib_path = getenv("ROB2LIB_PATH");
 addpath(lib_path);
 rob2fun = rob2lib();
 
-%% INPUTS
-% PAY ATTENTION: update for each problem!
-
-N = 2; % number of joints
-
-% Suppose diagonal ineria matrix for each link
-I_diag = true; 
-
-% Load symbols in the workspace
-run('rob2symb.m')
-
-% Inertia matrix for each link
-%celldisp(I) % uncomment for debug
-
-% Definition of gravity vector
-% Mind the position of gravity
-g = [
-    g0;
-    0;
-    0;
-];
-
+%% LOAD MODEL
 % load robot datasheet
-run(lib_path+"/models/rp_planar.m")
-
-%% END OF INPUTS
+run(lib_path+"/models/spring_pendulum.m")
 
 %% KINETIC ENERGY
 % Implementation of Koening theorem for computing the 

@@ -2,6 +2,29 @@
 % Insert in the following file all the inputs necessary to compute the
 % dynamic model of a ... spatial robot
 
+
+%% INPUTS 
+% PAY ATTENTION: update for each problem!
+
+N = 4; % number of joints
+
+% Suppose diagonal ineria matrix for each link
+I_diag = true; 
+
+% Load symbols in the workspace
+run('rob2symb.m')
+
+% Inertia matrix for each link
+%celldisp(I) % uncomment for debug
+
+% Definition of gravity vector
+% Mind the position of gravity
+g = [
+    0;
+    g0;
+    0;
+];
+
 % sigma vector:
 % 0: revolout 
 % 1: prismatic

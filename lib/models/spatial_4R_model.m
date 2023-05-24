@@ -2,6 +2,38 @@
 % Insert in the following file all the inputs necessary to compute the
 % dynamic model of a planar 4R spatial robot
 
+%% INPUTS 
+% PAY ATTENTION: update for each problem!
+
+N = 4; % number of joints
+
+% Suppose diagonal ineria matrix for each link
+I_diag = true; 
+
+% Load symbols in the workspace
+run('rob2symb.m')
+
+% Inertia matrix for each link
+%celldisp(I) % uncomment for debug
+
+% Definition of gravity vector
+% Mind the position of gravity
+g = [
+    0;
+    g0;
+    0;
+];
+
+% sigma vector:
+% 0: revolout 
+% 1: prismatic
+sigma = [
+    0;
+    0;
+    0;
+    0;
+];
+
 % Direct kinematics.
 DHTABLE = [        
     0   L1   0   q1;
