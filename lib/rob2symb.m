@@ -8,6 +8,9 @@ q = transpose(q);
 q_dot = transpose(q_dot);
 q_d_dot = transpose(q_d_dot);
 
+% Generic sysmbols 
+syms lambda
+
 % Kinematics parameters
 syms l [1 N]
 syms L [1 N]
@@ -52,9 +55,15 @@ else
 end
 
 assume(m,{'real'})
+assume(m,{'positive'})
 assume(d,{'real'})
+assume(d,{'positive'})
 assume(L,{'real'})
-
+assume(L,{'positive'})
+assume(l,{'real'})
+assume(l,{'positive'})
+assume(g0,{'real'})
+assume(g0,{'positive'})
 
 
 

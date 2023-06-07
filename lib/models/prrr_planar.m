@@ -1,4 +1,4 @@
-%% DATASHEET FOR A PRP PLANAR ROBOT
+%% DATASHEET FOR A PRRRn PLANAR ROBOT
 % Insert in the following file all the inputs necessary to compute the
 % dynamic model of a ... robot
 
@@ -9,7 +9,7 @@ rob2fun = rob2lib();
 %% INPUTS
 % PAY ATTENTION: update for each problem!
 
-N = 3; % number of joints
+N = 4; % number of joints
 
 % Suppose diagonal ineria matrix for each link
 I_diag = true; 
@@ -24,26 +24,33 @@ run('rob2symb.m')
 % Mind the position of gravity
 g = [
     0;
-    -g0;
     0;
+    g0;
 ];
+
+syms h
 
 % PAY ATTENTION: this part require a precomputation that depends on the problem
 % Vectors of the centers of masses w.r.t world frame
 W_CoM = {
     [
         q1; 
-        0; 
+        d1; 
         0;
     ], ...
     [
-        (q1+k2) + d2*cos(q2); 
-        d2*sin(q2); 
+        q1 + d2*cos(q2); 
+        h + d2*sin(q2); 
         0;
     ], ...
     [
-        (q1+k2) + q3*cos(q2); 
-        q3*sin(q2); 
+        q1 + l2*cos(q2) + d3*cos(q3); 
+        h + l2*sin(q2) + d3*sin(q3); 
+        0;
+    ], ...
+    [
+        q1 + l2*cos(q2) + l3*cos(q3) + d4*cos(q4); 
+        h + l2*sin(q2) + l3*sin(q3) + d4*sin(q4); 
         0;
     ], ...
 };
@@ -52,21 +59,10 @@ celldisp(W_CoM)
 
 % Velocities of the centers of masses w.r.t world frame (derivative of W_CoM)
 CoM_VELOCITY = {
-    [
-        q_dot1; 
-        0;
-        0;
-    ], ... 
-    [
-        q_dot1 - d2*sin(q2)*q_dot2;
-        d2*cos(q2)*q_dot2; 
-        0;
-    ], ...
-    [
-        q_dot1 + q_dot3*cos(q2) - q3*sin(q2)*q_dot2;
-        q_dot3*sin(q2) + q3*cos(q2)*q_dot2;  
-        0;
-    ], ...
+    rob2fun.time_derivative(W_CoM{1}, q, q_dot), ...
+    rob2fun.time_derivative(W_CoM{2}, q, q_dot), ...
+    rob2fun.time_derivative(W_CoM{3}, q, q_dot), ...
+    rob2fun.time_derivative(W_CoM{4}, q, q_dot), ...
 };
 % uncomment for debug
 celldisp(CoM_VELOCITY)
@@ -86,7 +82,12 @@ OMEGA = {
     [
         0; 
         0; 
-        q_dot2;
+        q_dot3;
+    ], ...
+    [
+        0; 
+        0; 
+        q_dot4;
     ], ...
 };
 % uncomment for debug

@@ -15,7 +15,7 @@ rob2fun = rob2lib();
 
 %% LOAD MODEL
 % load robot datasheet
-run(lib_path+"/models/spring_pendulum.m")
+run(lib_path+"/models/prrr_planar.m")
 
 %% KINETIC ENERGY
 % Implementation of Koening theorem for computing the 
@@ -63,6 +63,16 @@ POTENTIAL_ENERGY
 g_q = N_terms{4};
 disp("Gravity term")
 g_q
+
+disp("Hessian of potential energy")
+A = jacobian(g_q, q);
+A
+
+disp("Charaterisctic polynom of A")
+A_t_A = transpose(A)*A;
+A_t_A
+poly = det(lambda*eye(size(A_t_A,1)) - A_t_A);
+poly
 
 %% DYNAMIC MODEL u
 model = M_q*q_d_dot + c_q_q_dot + g_q;
