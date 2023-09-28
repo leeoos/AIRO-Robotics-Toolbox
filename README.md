@@ -1,5 +1,5 @@
 # Robotics Toolbox 
-
+Robotics 1 and 2 - Sapienza (AIRO) 2022/2023 
 
 ---
 ## Table of content
@@ -19,6 +19,12 @@ Unfortunatly to try out this project it is required to have a updated version of
 To run the scripts smoothly it is also suggested to download MATLAB 2023b and to install the additional tools for robotics.
 
 ## Try it out
+Clone this repo on your local machine and run MATLAB with the appropriate script `start-matlab.sh`:
+```code
+git clone https://github.com/leeoos/airo-robotics-toolbox.git
+bash start-matlab.sh
+```
+Then run in MATLAB the appropriate script for your problem. Note that the scripts are organized in subdirectories and categorized by arguments.
 
 ## Contributing
 If you would like to contribute to this repository just submit a pull request as follow:
