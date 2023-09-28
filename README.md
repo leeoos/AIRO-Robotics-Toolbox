@@ -1,4 +1,5 @@
 # Robotics Toolbox 
+This repo is a collection of useful tools for the courses of Robotics 1 and Robotics 2 at DIAG (Sapinza). The `/scripts` folder contains matlab programs made to solve kinematics an dynamics problems in the contex of fixed based robots. A tipical application would be to use the tools to compute the dinamic model of a N joint spatial manipulator, given a basic parametrization of the robot (DH parameters). Unfortunatly to try out this project it is required to have a updated version of MATLB.
 
 ## Contributing
 If you would like to contribute to this repository just submit a pull request as follow:
