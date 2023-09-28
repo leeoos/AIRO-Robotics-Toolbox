@@ -1,5 +1,24 @@
 # Robotics Toolbox 
-This repo is a collection of useful tools for the courses of Robotics 1 and Robotics 2 at DIAG (Sapinza). The `/scripts` folder contains matlab programs made to solve kinematics an dynamics problems in the contex of fixed based robots. A tipical application would be to use the tools to compute the dinamic model of a N joint spatial manipulator, given a basic parametrization of the robot (DH parameters). Unfortunatly to try out this project it is required to have a updated version of MATLB.
+
+
+---
+## Table of content
+1. [Introduction](#introduction)
+2. [Requirements](#requirements)
+3. [Try it out](#try-it-out)
+4. [Contributiing](#contributing)
+5. [License](#license)
+6. [Credits](#credits) 
+---
+
+## Introduction
+This repo is a collection of useful tools for the courses of Robotics 1 and Robotics 2 at DIAG (Sapinza). The `/scripts` folder contains matlab programs made to solve kinematics an dynamics problems in the contex of fixed based robots. A tipical application would be to use the tools to compute the dinamic model of a N joint spatial manipulator, given a basic parametrization of the robot (DH parameters).
+
+## Requirements
+Unfortunatly to try out this project it is required to have a updated version of [MATLB](https://it.mathworks.com/). MATLAB it it is not an open source free software so you need to pay fo it, this unless you have a free account provided by you organization. If you are a Sapienza student you can obtain MATLAB [here](https://web.uniroma1.it/infosapienza/portale-matlab-sapienza). 
+To run the scripts smoothly it is also suggested to download MATLAB 2023b and to install the additional tools for robotics.
+
+## Try it out
 
 ## Contributing
 If you would like to contribute to this repository just submit a pull request as follow:
@@ -12,5 +31,11 @@ If you would like to contribute to this repository just submit a pull request as
 7. Create a pull request: Go to this repository, and click on the "New pull request" button. Select the branch you created in step 3 as the compare branch, and the original repository's main branch as the base branch.
 8. Submit the pull request: Provide a brief description of the changes you made, and submit the pull request.
 
+## License
+This project is licensed under the [GPL-3.0 License](LICENSE). Feel free to use and modify the code according to your needs.
+
 ## Credits
-We want to thank our classmates and all the other fellow students who contributed to the realization of the project.
+We want to thank our classmates and all the other fellow students who contributed to the realization of this project:  
+- Massimo Romano
+- Francesco Nocera
+- Paolo Renzi
